@@ -12,67 +12,71 @@ macros and templates that can be usefull in every part of the code
 // but it can be also defined by the intel compiler. Since we
 // don't plan on supporting it, the check against it is missing.
 #ifdef _MSC_VER
-    #define KIWI_MSVC
+#define KIWI_MSVC
 #else
-    #error "Only MSVC compiler is supported for now! OMEGALUL"
+#error "Only MSVC compiler is supported for now! OMEGALUL"
 #endif
 
 /*
         OS DETECTION
 */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-    #ifndef _WIN64
-        #error "64-bit Windows required!"
-        #define KIWI_WIN
-    #endif
+#ifndef _WIN64
+#error "64-bit Windows required!"
+#define KIWI_WIN
+#endif
 #else
-    //#error "Only windows is supported for now! OMEGALUL"
+#error "Only windows is supported for now! OMEGALUL"
 #endif
 
 /*
         EXORT MACROS
 */
 #ifdef KIWI_MSVC
-    #ifdef KIWI_ENGINE_EXPORTS
-        #define KIWI_API __declspec(dllexport)
-    #else
-        #define KIWI_API __declspec(dllimport)
-    #endif
+#ifdef KIWI_ENGINE_EXPORTS
+#define KIWI_API __declspec(dllexport)
+#else
+#define KIWI_API __declspec(dllimport)
+#endif
 #endif
 
 /*
         INLINE MACROS
 */
 #ifdef KIWI_MSVC
-    #define KIWI_FORCEINLINE __forceinline
-    #define KIWI_FORBIDINLINE __declspec(noinline)
+#define KIWI_FORCEINLINE __forceinline
+#define KIWI_FORBIDINLINE __declspec(noinline)
 #else
-    // TODO(valentino): This should work both on gcc and clang, but i haven't done too much
-    // research about it. Also I don't know a way of preventing inlining on those compilers
-    #define KIWI_FORCEINLINE inline __attribute__((always_inline))
-    #define KIWI_FORBIDINLINE
+// TODO: This should work both on gcc and clang, but i haven't done too much
+// research about it. Also I don't know a way of preventing inlining on those compilers
+#define KIWI_FORCEINLINE inline __attribute__((always_inline))
+#define KIWI_FORBIDINLINE
 #endif
 
 /*
         RUNTIME AND STATIC ASSERTION
 */
 #if defined(KIWI_MSVC) && defined(KIWI_SLOW)
-    #define Assert(Expression) \
-        if (!(Expression))     \
+#define Assert(Expression) \
+        if (!(Expression)) \
         __debugbreak()
 
-    #define AssertMsg(Expression, Message) \
-        if (!(Expression))                 \
+#define AssertMsg(Expression, Message) \
+        if (!(Expression))             \
         __debugbreak()
 
-    #define StaticAssert(Expression) static_assert(Expression)
-    #define StaticAssertMsg(Expression, Message) static_assert(Expression, Message)
+#define StaticAssert(Expression) static_assert(Expression)
+#define StaticAssertMsg(Expression, Message) static_assert(Expression, Message)
 #else
-    #define Assert(Expression)
-    #define AssertMsg(Expression, Message)
+#define Assert(Expression)
+#define AssertMsg(Expression, Message)
 #endif
 
 #define KIWI_BEBUGBREAK Assert(false)
+
+// TRUE and FALSE definitions that I use for macro
+#define TRUE 1
+#define FALSE 0
 
 /*
         CUSTOM TYPES
