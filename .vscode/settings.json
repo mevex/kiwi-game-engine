@@ -1,0 +1,27 @@
+{
+	"todohighlight.isEnable": true,
+	"todohighlight.isCaseSensitive": false,
+	"todohighlight.keywords": [
+		{
+			"text": "TODO:",
+			"color": "#ff4c4c",
+			"backgroundColor": "rgba(0,0,0,0)"
+		},
+		{
+			"text": "HACK:",
+			"color": "#ffbb00",
+			"backgroundColor": "rgba(0,0,0,0)"
+		},
+		{
+			"text": "NOTE:",
+			"color": "#52cc76",
+			"backgroundColor": "rgba(0,0,0,0)"
+		}
+	],
+	"todohighlight.defaultStyle": {
+		"color": "red",
+		"backgroundColor": "#ffab00",
+		"overviewRulerColor": "rgba(0,0,0,0)",
+		"isWholeLine": false,
+	},
+}

@@ -1,0 +1,23 @@
+{
+	"configurations": [
+		{
+			"name": "Win32",
+			"includePath": [
+				"${workspaceFolder}/engine/src/**",
+				"${VULKAN_SDK}/include"
+			],
+			"defines": [
+				"KIWI_SLOW",
+				"KIWI_ENGINE_EXPORTS",
+				"_UNICODE",
+				"UNICODE"
+			],
+			"windowsSdkVersion": "10.0.18362.0",
+			"compilerPath": "G:\\Programs\\Visual Studio 2022\\VC\\Tools\\MSVC\\14.32.31326\\bin\\Hostx64\\x64\\cl.exe",
+			"cStandard": "c17",
+			"cppStandard": "c++17",
+			"intelliSenseMode": "windows-msvc-x64"
+		}
+	],
+	"version": 4
+}
