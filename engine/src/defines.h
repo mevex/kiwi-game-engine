@@ -56,23 +56,24 @@ macros and templates that can be usefull in every part of the code
 /*
         RUNTIME AND STATIC ASSERTION
 */
+// TODO: allow for more complicated behaviours
 #if defined(KIWI_MSVC) && defined(KIWI_SLOW)
+#define DebugBreak() __debugbreak()
 #define Assert(Expression) \
         if (!(Expression)) \
-        __debugbreak()
-
+        DebugBreak()
 #define AssertMsg(Expression, Message) \
         if (!(Expression))             \
-        __debugbreak()
-
+        DebugBreak()
 #define StaticAssert(Expression) static_assert(Expression)
 #define StaticAssertMsg(Expression, Message) static_assert(Expression, Message)
 #else
+#define DebugBreak()
 #define Assert(Expression)
 #define AssertMsg(Expression, Message)
+#define StaticAssert(Expression)
+#define StaticAssertMsg(Expression, Message)
 #endif
-
-#define KIWI_BEBUGBREAK Assert(false)
 
 // TRUE and FALSE definitions that I use for macro
 #define TRUE 1
