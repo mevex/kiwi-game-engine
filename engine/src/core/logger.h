@@ -29,7 +29,7 @@ public:
 	static b8 InitializeLogging();
 	static void TerminateLogging();
 
-	KIWI_API static void LogOutput(LogLevel InLevel, const char *InMessage, ...);
+	KIWI_API static void LogOutput(LogLevel Level, const char *Message, ...);
 };
 
 // NOTE: Variadic macros are compiler specific,

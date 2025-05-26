@@ -1,4 +1,5 @@
 #include "logger.h"
+#include "platform/platform.h"
 
 // TODO: Temporary! Remove once we have implemented those ourselves
 #include <stdio.h>
@@ -18,13 +19,13 @@ void Logger::TerminateLogging()
 }
 
 #define LOG_BUFFER_SIZE 4096
-KIWI_API void Logger::LogOutput(LogLevel InLevel, const char *InMessage, ...)
+KIWI_API void Logger::LogOutput(LogLevel Level, const char *Message, ...)
 {
 	// NOTE: I don't use LOG_BUFFER_SIZE to check because I want the extra
 	// 96 char to be left spare for the prefix and the \n\0 at the end.
 	// Since the limitation will be temporary (hopefully) we don't have to be
 	// extra precise here
-	Assert(strlen(InMessage) < 4000);
+	Assert(strlen(Message) < 4000);
 	// TODO: We are imposing a limit to the logging message
 	// Address this once we have custom memory allocation (Arenas)
 	char Temp[LOG_BUFFER_SIZE];
@@ -40,14 +41,17 @@ KIWI_API void Logger::LogOutput(LogLevel InLevel, const char *InMessage, ...)
 		"[DEBUG]: ",
 		"",
 	};
-	// b8 IsError = InLevel < 2;
 
 	va_list ArgsPtr;
-	va_start(ArgsPtr, InMessage);
-	vsnprintf(Temp, LOG_BUFFER_SIZE, InMessage, ArgsPtr);
+	va_start(ArgsPtr, Message);
+	vsnprintf(Temp, LOG_BUFFER_SIZE, Message, ArgsPtr);
 	va_end(ArgsPtr);
 
-	snprintf(OutMessage, LOG_BUFFER_SIZE, "%s%s\n", LevelPrefix[InLevel], Temp);
+	snprintf(OutMessage, LOG_BUFFER_SIZE, "%s%s\n", LevelPrefix[Level], Temp);
 
-	printf("%s", OutMessage);
+	b8 IsError = Level < Logger::LogLevel::Warning;
+	if (IsError)
+		Platform::ConsoleWriteError(OutMessage, (u8)Level);
+	else
+		Platform::ConsoleWrite(OutMessage, (u8)Level);
 }

@@ -59,13 +59,13 @@ macros and templates that can be usefull in every part of the code
 */
 // TODO: allow for more complicated behaviors
 #if defined(KIWI_MSVC) && defined(KIWI_SLOW)
-#define DebugBreak() __debugbreak()
+#define KDebugBreak() __debugbreak()
 #define Assert(Expression) \
         if (!(Expression)) \
-        DebugBreak()
+        KDebugBreak()
 #define AssertMsg(Expression, Message) \
         if (!(Expression))             \
-        DebugBreak()
+        KDebugBreak()
 #define StaticAssert(Expression) static_assert(Expression)
 #define StaticAssertMsg(Expression, Message) static_assert(Expression, Message)
 #else
@@ -95,8 +95,6 @@ typedef long long i64;
 
 typedef float f32;
 typedef double f64;
-
-typedef u8 byte;
 
 typedef u8 b8;
 typedef u32 b32;
