@@ -21,9 +21,10 @@ macros and templates that can be usefull in every part of the code
         OS DETECTION
 */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
-#ifndef _WIN64
-#error "64-bit Windows required!"
+#if _WIN64
 #define KIWI_WIN
+#else
+#error "64-bit compilation required!"
 #endif
 #else
 #error "Only windows is supported for now! OMEGALUL"
@@ -56,7 +57,7 @@ macros and templates that can be usefull in every part of the code
 /*
         RUNTIME AND STATIC ASSERTION
 */
-// TODO: allow for more complicated behaviours
+// TODO: allow for more complicated behaviors
 #if defined(KIWI_MSVC) && defined(KIWI_SLOW)
 #define DebugBreak() __debugbreak()
 #define Assert(Expression) \
@@ -122,7 +123,7 @@ StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
         MISC
 */
 #define local_persist static
-#define global_var static
+#define local_var static
 #define internal_func static
 
 #define KiB(value) ((value) * 1024LL)
