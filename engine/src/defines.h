@@ -83,15 +83,15 @@ macros and templates that can be usefull in every part of the code
 /*
         CUSTOM TYPES
 */
-typedef unsigned char i8;
-typedef unsigned short i16;
-typedef unsigned int i32;
-typedef unsigned long long i64;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef unsigned long long u64;
 
-typedef char u8;
-typedef short u16;
-typedef int u32;
-typedef long long u64;
+typedef char i8;
+typedef short i16;
+typedef int i32;
+typedef long long i64;
 
 typedef float f32;
 typedef double f64;
