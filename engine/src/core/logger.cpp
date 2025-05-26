@@ -6,20 +6,20 @@
 #include <string.h>
 #include <stdarg.h>
 
-b8 Logger::InitializeLogging()
+b8 Logger::Initialize()
 {
 	// TODO: implement file logging
 	// TODO: implement platform specific initialization
 	return true;
 }
 
-void Logger::TerminateLogging()
+void Logger::Terminate()
 {
 	// TODO: terminate logging/write queue to disk
 }
 
 #define LOG_BUFFER_SIZE 4096
-KIWI_API void Logger::LogOutput(LogLevel Level, const char *Message, ...)
+KIWI_API void Logger::Output(LogLevel Level, const char *Message, ...)
 {
 	// NOTE: I don't use LOG_BUFFER_SIZE to check because I want the extra
 	// 96 char to be left spare for the prefix and the \n\0 at the end.

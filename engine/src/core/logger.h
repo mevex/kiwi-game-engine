@@ -26,39 +26,39 @@ public:
 		Trace
 	};
 
-	static b8 InitializeLogging();
-	static void TerminateLogging();
+	static b8 Initialize();
+	static void Terminate();
 
-	KIWI_API static void LogOutput(LogLevel Level, const char *Message, ...);
+	KIWI_API static void Output(LogLevel Level, const char *Message, ...);
 };
 
 // NOTE: Variadic macros are compiler specific,
 // that's why we check for MSVC
 #ifdef KIWI_MSVC
 
-#define LogFatal(Message, ...) Logger::LogOutput(Logger::LogLevel::Fatal, (Message), __VA_ARGS__)
-#define LogError(Message, ...) Logger::LogOutput(Logger::LogLevel::Error, (Message), __VA_ARGS__)
+#define LogFatal(Message, ...) Logger::Output(Logger::LogLevel::Fatal, (Message), __VA_ARGS__)
+#define LogError(Message, ...) Logger::Output(Logger::LogLevel::Error, (Message), __VA_ARGS__)
 
 #if WARNING_LOG_ENABLED
-#define LogWarning(Message, ...) Logger::LogOutput(Logger::LogLevel::Warning, (Message), __VA_ARGS__)
+#define LogWarning(Message, ...) Logger::Output(Logger::LogLevel::Warning, (Message), __VA_ARGS__)
 #else
 #define LogWarning(Message, ...)
 #endif
 
 #if INFO_LOG_ENABLED
-#define LogInfo(Message, ...) Logger::LogOutput(Logger::LogLevel::Info, (Message), __VA_ARGS__)
+#define LogInfo(Message, ...) Logger::Output(Logger::LogLevel::Info, (Message), __VA_ARGS__)
 #else
 #define LogInfo(Message, ...)
 #endif
 
 #if DEBUG_LOG_ENABLED
-#define LogDebug(Message, ...) Logger::LogOutput(Logger::LogLevel::Debug, (Message), __VA_ARGS__)
+#define LogDebug(Message, ...) Logger::Output(Logger::LogLevel::Debug, (Message), __VA_ARGS__)
 #else
 #define LogDebug(Message, ...)
 #endif
 
 #if TRACE_LOG_ENABLED
-#define LogTrace(Message, ...) Logger::LogOutput(Logger::LogLevel::Trace, (Message), __VA_ARGS__)
+#define LogTrace(Message, ...) Logger::Output(Logger::LogLevel::Trace, (Message), __VA_ARGS__)
 #else
 #define LogTrace(Message, ...)
 #endif
