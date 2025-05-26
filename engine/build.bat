@@ -1,8 +1,10 @@
 @echo off
 
+SETLOCAL ENABLEDELAYEDEXPANSION
+
 set FileNames=
 for /R %%f in (*.cpp) do (
-	call set FileNames=%FileNames% %%f
+	set FileNames=!FileNames! %%f
 )
 
 pushd ..\bin
