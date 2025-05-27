@@ -49,7 +49,7 @@ KIWI_API void Logger::Output(LogLevel Level, const char *Message, ...)
 
 	snprintf(OutMessage, LOG_BUFFER_SIZE, "%s%s\n", LevelPrefix[Level], Temp);
 
-	b8 IsError = Level < Logger::LogLevel::Warning;
+	b8 IsError = Level < LogLevel_Warning;
 	if (IsError)
 		Platform::ConsoleWriteError(OutMessage, (u8)Level);
 	else
