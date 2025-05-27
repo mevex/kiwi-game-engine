@@ -84,7 +84,7 @@ void Platform::Terminate(Platform::State *PlatState)
 
 // NOTE: Windows does not need the platform state
 #pragma warning(suppress : 4100)
-void Platform::ProcessMessageQueue(Platform::State *PlatState)
+b8 Platform::ProcessMessageQueue(Platform::State *PlatState)
 {
 	MSG Message;
 	while (PeekMessageA(&Message, 0, 0, 0, PM_REMOVE))
@@ -92,6 +92,8 @@ void Platform::ProcessMessageQueue(Platform::State *PlatState)
 		TranslateMessage(&Message);
 		DispatchMessageA(&Message);
 	}
+
+	return true;
 }
 
 // TODO: Use platform specific function (VirtualAlloc)
