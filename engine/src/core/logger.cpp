@@ -39,7 +39,7 @@ KIWI_API void Logger::Output(LogLevel Level, const char *Message, ...)
 		"[WARN]:  ",
 		"[INFO]:  ",
 		"[DEBUG]: ",
-		"",
+		"[TRACE]: ",
 	};
 
 	va_list ArgsPtr;

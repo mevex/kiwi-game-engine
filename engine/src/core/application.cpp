@@ -1,6 +1,7 @@
 #include "application.h"
 #include "core/logger.h"
 #include "game_types.h"
+#include "core/kiwi_mem.h"
 
 Application *Application::Instance = nullptr;
 
@@ -13,7 +14,7 @@ b8 Application::Create(Game *GameInstance)
 	}
 	else
 	{
-		Application::Instance = (Application *)Platform::Allocate(sizeof(Application));
+		Application::Instance = (Application *)MemSystem::Allocate(sizeof(Application), MemTag_Application);
 	}
 
 	Application::Instance->GameInstance = GameInstance;
@@ -57,6 +58,8 @@ b8 Application::Create(Game *GameInstance)
 
 b8 Application::Run()
 {
+	LogInfo("%s", MemSystem::Report());
+
 	while (Application::Instance->IsRunning)
 	{
 		if (!Platform::ProcessMessageQueue(&Application::Instance->PlatformState))

@@ -1,8 +1,6 @@
 #include "entry_point.h"
 #include "game.h"
-
-// TODO: Remove this
-#include "platform/platform.h"
+#include "core/kiwi_mem.h"
 
 b8 CreateGame(Game *OutGame)
 {
@@ -17,7 +15,7 @@ b8 CreateGame(Game *OutGame)
 	OutGame->Render = GameRender;
 	OutGame->OnResize = GameOnResize;
 
-	OutGame->State = Platform::Allocate(sizeof(GameState));
+	OutGame->State = MemSystem::Allocate(sizeof(GameState), MemTag_Game);
 
 	return true;
 }

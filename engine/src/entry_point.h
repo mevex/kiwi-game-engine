@@ -4,11 +4,15 @@
 #include "core/application.h"
 #include "core/logger.h"
 #include "game_types.h"
+#include "core/kiwi_mem.h"
 
 extern b8 CreateGame(Game *OutGame);
 
 int main(void)
 {
+	// NOTE: Only very specific subsystems will be initialized here
+	MemSystem::Initialize();
+
 	// Initialize the game instance
 	Game GameInstance;
 	if (!CreateGame(&GameInstance))
@@ -37,5 +41,6 @@ int main(void)
 		return 2;
 	}
 
+	MemSystem::Terminate();
 	return 0;
 }

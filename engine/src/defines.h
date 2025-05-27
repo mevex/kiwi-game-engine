@@ -129,6 +129,11 @@ StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
 #define GiB(value) (MiB(value) * 1024LL)
 #define TiB(value) (GiB(value) * 1024LL)
 
+#define ToKiB(value) ((value) / 1024.0)
+#define ToMiB(value) (ToKiB(value) / 1024.0)
+#define ToGiB(value) (ToMiB(value) / 1024.0)
+#define ToTiB(value) (ToGiB(value) / 1024.0)
+
 #define ArrayCount(array) (sizeof(array) / sizeof((array)[0]))
 #define CheckFlags(Flags, FlagsToCheck) ((Flags) & (FlagsToCheck))
 #define FourCC(String) (u32)((String[0] << 0) | (String[1] << 8) | (String[2] << 16) | (String[3] << 24))
