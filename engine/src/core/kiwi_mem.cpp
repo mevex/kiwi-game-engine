@@ -21,7 +21,7 @@ void MemSystem::Terminate()
 {
 }
 
-void *MemSystem::Allocate(u64 Size, MemTag Tag, b8 MakeZero)
+void *MemSystem::Allocate(u64 Size, u8 Tag, b8 MakeZero)
 {
 	if (Tag == MemTag_Unknown)
 	{

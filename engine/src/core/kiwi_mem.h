@@ -20,7 +20,7 @@ public:
 	KIWI_API static void Initialize();
 	KIWI_API static void Terminate();
 
-	KIWI_API static void *Allocate(u64 Size, MemTag Tag, b8 MakeZero = true);
+	KIWI_API static void *Allocate(u64 Size, u8 Tag, b8 MakeZero = true);
 	KIWI_API static void Free(void *Address, u64 Size, MemTag Tag);
 	KIWI_API static void Set(void *Address, u64 Size, u32 Value);
 	KIWI_API static void Zero(void *Address, u64 Size);
