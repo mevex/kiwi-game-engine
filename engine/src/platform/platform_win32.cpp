@@ -48,12 +48,17 @@ b8 Platform::Startup(Platform::State *PlatState, const char *ApplicationName,
 	u32 WindowStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 	u32 WindowExtendedStyle = WS_EX_APPWINDOW;
 
-	RECT WindowRect = {(LONG)ClientX, (LONG)ClientY, (LONG)ClientWidth, (LONG)ClientHeight};
-	AdjustWindowRectEx(&WindowRect, WindowStyle, 0, WindowExtendedStyle);
+	RECT WindowBorders = {0, 0, 0, 0};
+	AdjustWindowRectEx(&WindowBorders, WindowStyle, 0, WindowExtendedStyle);
+
+	i32 WindowX = ClientX + WindowBorders.left;
+	i32 WindowY = ClientY + WindowBorders.top;
+	i32 WindowWidth = ClientWidth + (WindowBorders.right - WindowBorders.left);
+	i32 WindowHeight = ClientHeight + (WindowBorders.bottom - WindowBorders.top);
 
 	State->WindowHandle =
 		CreateWindowExA(WindowExtendedStyle, WindowClass.lpszClassName, ApplicationName, WindowStyle,
-						WindowRect.left, WindowRect.top, WindowRect.right, WindowRect.bottom,
+						WindowX, WindowY, WindowWidth, WindowHeight,
 						0, 0, State->InstanceHandle, 0);
 	if (!State->WindowHandle)
 	{
