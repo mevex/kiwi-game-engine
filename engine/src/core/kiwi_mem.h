@@ -7,7 +7,7 @@ enum MemTag
 	MemTag_Unknown,
 	MemTag_Application,
 	MemTag_Game,
-	MemTag_Array,
+	MemTag_KArray,
 	MemTag_String,
 
 	MemTag_Count

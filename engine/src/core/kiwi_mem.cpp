@@ -77,6 +77,7 @@ void MemSystem::Copy(void *Dest, void *Source, u64 Size)
 #define STRING_LENGTH 3999
 char *MemSystem::Report()
 {
+	// TODO: This function is currently LEAKING MEMORY
 	char Buffer[STRING_LENGTH] = "SYSTEM MEMORY USE:\n";
 	u32 BufferOffset = (u32)strlen(Buffer);
 	for (u32 Index = 0; Index < MemTag_Count; ++Index)
