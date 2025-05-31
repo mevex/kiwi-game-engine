@@ -91,7 +91,7 @@ b8 EventSystem::Unregister(u16 Code, void *Listener, on_event OnEvent)
 	return false;
 }
 
-b8 EventSystem::FireEvent(u16 Code, void *Sender, EventContext Context)
+b8 EventSystem::Fire(u16 Code, void *Sender, EventContext Context)
 {
 	if (!IsInitialized)
 	{

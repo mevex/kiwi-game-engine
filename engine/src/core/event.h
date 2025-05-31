@@ -105,7 +105,7 @@ public:
 	// NOTE: Fire the event to listeners of the corresponding code.
 	// if an event handler returns true the event is considered handled
 	// and not passed on to any more listeners.
-	KIWI_API static b8 FireEvent(u16 Code, void *Sender, EventContext Context);
+	KIWI_API static b8 Fire(u16 Code, void *Sender, EventContext Context);
 
 private:
 	// NOTE: LUT for event codes

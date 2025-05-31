@@ -144,3 +144,11 @@ template <typename T>
 inline T Min(T A, T B) { return A < B ? A : B; }
 template <typename T>
 inline T Clamp(T Value, T Min, T Max) { return Max(Min(Value, Max), Min); }
+
+template <typename T>
+inline void Swap(T *A, T *B)
+{
+        T *Temp = A;
+        A = B;
+        B = Temp;
+}
