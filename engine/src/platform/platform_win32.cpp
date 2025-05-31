@@ -3,6 +3,8 @@
 #ifdef KIWI_WIN
 
 #include "core/logger.h"
+#include "core/input.h"
+
 #include <windows.h>
 #include <windowsx.h>
 #include <stdlib.h>
@@ -224,23 +226,10 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 	{
-		// TODO: Input processing
-		// b8 Pressed = (Message == WM_KEYDOWN || Message == WM_SYSKEYDOWN);
+		b8 Pressed = (Message == WM_KEYDOWN || Message == WM_SYSKEYDOWN);
+		Key KeyCode = (Key)WParam;
+		InputSystem::ProcessKey(KeyCode, Pressed);
 		break;
-	}
-	case WM_MOUSEMOVE:
-	{
-		// TODO: Input processing
-		// i32 XPos = GET_X_LPARAM(LParam);
-		// i32 YPos = GET_Y_LPARAM(LParam);
-		break;
-	}
-	case WM_MOUSEWHEEL:
-	{
-		// TODO: Input processing
-		// NOTE: Positive values mean that the wheel was rotated forward
-		// i32 ZDelta = GET_WHEEL_DELTA_WPARAM(WPARAM);
-		// i32 NumRotations = ZDelta / WHEEL_DELTA;
 	}
 	case WM_LBUTTONDOWN:
 	case WM_MBUTTONDOWN:
@@ -249,9 +238,47 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	case WM_MBUTTONUP:
 	case WM_RBUTTONUP:
 	{
-		// TODO: Input processing
-		// b8 Pressed = (Message == WM_LBUTTONDOWN || Message == WM_MBUTTONDOWN || Message == WM_RBUTTONDOWN);
+		b8 Pressed = (Message == WM_LBUTTONDOWN || Message == WM_MBUTTONDOWN || Message == WM_RBUTTONDOWN);
+		MouseButton Button = MouseButton_Count;
+		switch (Message)
+		{
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		{
+			Button = MouseButton_Left;
+			break;
+		}
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+		{
+			Button = MouseButton_Middle;
+			break;
+		}
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+		{
+			Button = MouseButton_Right;
+			break;
+		}
+		}
+
+		if (Button != MouseButton_Count)
+			InputSystem::ProcessMouseButton(Button, Pressed);
 		break;
+	}
+	case WM_MOUSEMOVE:
+	{
+		i16 XPos = (i16)GET_X_LPARAM(LParam);
+		i16 YPos = (i16)GET_Y_LPARAM(LParam);
+		InputSystem::ProcessMouseMove(XPos, YPos);
+		break;
+	}
+	case WM_MOUSEWHEEL:
+	{
+		// NOTE: Positive values mean that the wheel was rotated forward
+		i32 ZDelta = GET_WHEEL_DELTA_WPARAM(WParam);
+		i8 NumRotations = (i8)(ZDelta / WHEEL_DELTA);
+		InputSystem::ProcessMouseWheel(NumRotations);
 	}
 	default:
 	{
@@ -261,4 +288,5 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	}
 	return Result;
 }
+
 #endif // KIWI_WIN

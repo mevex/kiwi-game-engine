@@ -3,6 +3,7 @@
 #include "game_types.h"
 #include "core/kiwi_mem.h"
 #include "core/event.h"
+#include "core/input.h"
 
 Application *Application::Instance = nullptr;
 
@@ -27,6 +28,7 @@ b8 Application::Create(Game *GameInstance)
 		LogFatal("Event system failed to initialize");
 		return false;
 	}
+	InputSystem::Initialize();
 
 	// TODO: Remove this
 	LogFatal("This is a test message: %.2f", 3.14f);
@@ -88,12 +90,19 @@ b8 Application::Run()
 				LogFatal("Game render failed, shutting down");
 				Application::Instance->IsRunning = false;
 			}
+
+			// NOTE: Since the update function for the input swaps
+			// the previous/current states, we want to perform this
+			// at the end of the frame so that the game operates
+			// on fresh input provided by the OS
+			InputSystem::Update();
 		}
 	}
 
 	// TODO: Check all the Terminate function to make sure
 	// we actually need to terminate these subsystems or
 	// we cand simply let the OS handle it for us
+	InputSystem::Terminate();
 	EventSystem::Terminate();
 	Platform::Terminate(&Instance->PlatformState);
 
