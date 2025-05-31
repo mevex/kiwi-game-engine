@@ -36,12 +36,10 @@ b8 Application::Create(Game *GameInstance)
 		LogFatal("Event system failed to initialize");
 		return false;
 	}
-	else
-	{
-		EventSystem::Register(SEC_ApplicationQuit, Application::Instance, HandleEvent);
-		EventSystem::Register(SEC_KeyPressed, Application::Instance, HandleKey);
-		EventSystem::Register(SEC_KeyReleased, Application::Instance, HandleKey);
-	}
+	EventSystem::Register(SEC_ApplicationQuit, Application::Instance, HandleEvent);
+	EventSystem::Register(SEC_KeyPressed, Application::Instance, HandleKey);
+	EventSystem::Register(SEC_KeyReleased, Application::Instance, HandleKey);
+
 	InputSystem::Initialize();
 
 	// TODO: Remove this
@@ -116,6 +114,10 @@ b8 Application::Run()
 	// TODO: Check all the Terminate function to make sure
 	// we actually need to terminate these subsystems or
 	// we cand simply let the OS handle it for us
+	EventSystem::Unregister(SEC_ApplicationQuit, Application::Instance, HandleEvent);
+	EventSystem::Unregister(SEC_KeyPressed, Application::Instance, HandleKey);
+	EventSystem::Unregister(SEC_KeyReleased, Application::Instance, HandleKey);
+
 	InputSystem::Terminate();
 	EventSystem::Terminate();
 	Platform::Terminate(&Instance->PlatformState);
