@@ -23,9 +23,9 @@ b8 EventSystem::Terminate()
 {
 	for (u16 Index = 0; Index < MAX_MESSAGE_CODES; ++Index)
 	{
-		if (Registered[Index].Events->Length)
+		if (Registered[Index].Events.Length)
 		{
-			Registered[Index].Events->Destroy();
+			Registered[Index].Events.Destroy();
 		}
 	}
 
@@ -40,7 +40,7 @@ b8 EventSystem::Register(u16 Code, void *Listener, on_event OnEvent)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = Registered[Code].Events;
+	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
 	if (Events->Capacity == 0)
 	{
 		Events->Create();
@@ -71,7 +71,7 @@ b8 EventSystem::Unregister(u16 Code, void *Listener, on_event OnEvent)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = Registered[Code].Events;
+	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
 	if (Events->Capacity == 0)
 	{
 		return false;
@@ -99,10 +99,10 @@ b8 EventSystem::Fire(u16 Code, void *Sender, EventContext Context)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = Registered[Code].Events;
+	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
 	if (Events->Capacity == 0)
 	{
-		return false;
+		Events->Create();
 	}
 
 	for (u64 Index = 0; Index < Events->Length; ++Index)

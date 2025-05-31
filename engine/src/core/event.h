@@ -82,7 +82,7 @@ struct RegisteredEvent
 
 struct EventCodeEntry
 {
-	KArray<RegisteredEvent> *Events;
+	KArray<RegisteredEvent> Events;
 };
 
 #define MAX_MESSAGE_CODES 4096
