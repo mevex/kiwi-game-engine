@@ -21,6 +21,8 @@ public:
 	KIWI_API static b8 Create(Game *GameInstance);
 	KIWI_API static b8 Run();
 
+	static void SetIsRunning(b8 Running);
+
 private:
 	static Application *Instance;
 

@@ -4,6 +4,7 @@
 
 #include "core/logger.h"
 #include "core/input.h"
+#include "core/event.h"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -202,11 +203,12 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	}
 	case WM_CLOSE:
 	{
-		// TODO: Fire an event to the application to quit
+		EventSystem::Fire(SEC_ApplicationQuit, nullptr, {});
 		break;
 	}
 	case WM_DESTROY:
 	{
+		LogInfo("WM Destroy");
 		PostQuitMessage(0);
 		break;
 	}

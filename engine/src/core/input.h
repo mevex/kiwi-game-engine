@@ -22,7 +22,7 @@ enum Key : u16
 	DEFINE_KEY(Tab, 0x09),
 	DEFINE_KEY(Shift, 0x10),
 	DEFINE_KEY(Control, 0x11),
-
+	DEFINE_KEY(Alt, 0x12),
 	DEFINE_KEY(Pause, 0x13),
 	DEFINE_KEY(Capital, 0x14),
 
