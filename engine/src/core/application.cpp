@@ -2,6 +2,7 @@
 #include "core/logger.h"
 #include "game_types.h"
 #include "core/kiwi_mem.h"
+#include "core/event.h"
 
 Application *Application::Instance = nullptr;
 
@@ -21,6 +22,11 @@ b8 Application::Create(Game *GameInstance)
 
 	// Initialize Subsystems
 	Logger::Initialize();
+	if (!EventSystem::Initialize())
+	{
+		LogFatal("Event system failed to initialize");
+		return false;
+	}
 
 	// TODO: Remove this
 	LogFatal("This is a test message: %.2f", 3.14f);
@@ -34,7 +40,7 @@ b8 Application::Create(Game *GameInstance)
 	Application::Instance->IsRunning = true;
 	Application::Instance->IsSuspended = false;
 
-	// Startup the platform with the informations inside tha game instance
+	// Startup the platform with the informations inside the game instance
 	ApplicationConfig *AppConfig = &Application::Instance->GameInstance->AppConfig;
 	if (!Platform::Startup(&Application::Instance->PlatformState, AppConfig->Name,
 						   AppConfig->PosX, AppConfig->PosY, AppConfig->Width, AppConfig->Height))
@@ -85,6 +91,10 @@ b8 Application::Run()
 		}
 	}
 
+	// TODO: Check all the Terminate function to make sure
+	// we actually need to terminate these subsystems or
+	// we cand simply let the OS handle it for us
+	EventSystem::Terminate();
 	Platform::Terminate(&Instance->PlatformState);
 
 	return true;
