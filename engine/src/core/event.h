@@ -26,7 +26,7 @@ struct EventContext
 };
 
 // NOTE: Application defined event code will start at 256 (0x100)
-enum SystemEventCode
+enum SystemEventCode : u8
 {
 	// Shuts down the application on the next frame.
 	SEC_ApplicationQuit = 0x01,
@@ -43,30 +43,30 @@ enum SystemEventCode
 
 	// Mouse button pressed
 	// Context usage:
-	// u16[0] = Button
-	SEC_ButtonPressed = 0x04,
+	// u16[0] = MouseButton
+	SEC_MouseButtonPressed = 0x04,
 
 	// Mouse button released
 	// Context usage:
-	// u16[0] = Button
-	SEC_ButtonReleased = 0x05,
+	// u16[0] = MouseButton
+	SEC_MouseButtonReleased = 0x05,
 
 	// Mouse moved
 	// Context usage:
-	// u16[0] = X
-	// u16[1] = Y
+	// i16[0] = X
+	// i16[1] = Y
 	SEC_MouseMoved = 0x06,
 
 	// Mouse wheel rotated
 	// Context usage:
-	// u16[0] = ZDelta
+	// i8[0] = ZDelta
 	SEC_MouseWheel = 0x07,
 
 	// Resized/resolution changed
 	// Context usage:
 	// u16[0] = Width
 	// u16[1] = Height
-	SEC_Resized = 0x07,
+	SEC_Resized = 0x08,
 
 	SEC_Max = 0xff
 };
