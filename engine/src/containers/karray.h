@@ -11,12 +11,12 @@ template <typename T>
 class KIWI_API KArray
 {
 public:
-	KArray();
+	KArray() {}
 
 	~KArray()
 	{
 		if (Elements)
-			Destroy()
+			Destroy();
 	}
 
 	// NOTE: I want to be able to manually controll the creation
