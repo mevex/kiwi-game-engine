@@ -32,5 +32,4 @@ private:
 	Platform::State PlatformState;
 	u16 Width;
 	u16 Height;
-	f64 LastTime;
 };

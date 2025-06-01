@@ -4,6 +4,7 @@
 #include "core/kiwi_mem.h"
 #include "core/event.h"
 #include "core/input.h"
+#include "core/timer.h"
 
 ON_EVENT(HandleEvent);
 ON_EVENT(HandleKey);
@@ -78,6 +79,13 @@ b8 Application::Create(Game *GameInstance)
 
 b8 Application::Run()
 {
+	// Time management init
+	f64 TargetFrameTime = 1.0 / 60.0;
+	Timer ApplicationClock;
+	ApplicationClock.Start();
+	ApplicationClock.Update();
+	f64 LastFrameTime = ApplicationClock.UpdatedTime;
+
 	LogInfo("%s", MemSystem::Report());
 
 	while (Application::Instance->IsRunning)
@@ -89,18 +97,41 @@ b8 Application::Run()
 
 		if (!Application::Instance->IsSuspended)
 		{
-			// TODO: pass a real delta time
-			if (!Application::Instance->GameInstance->Update(Application::Instance->GameInstance, 0.f))
+			// Update clock and get DeltaTime
+			ApplicationClock.Update();
+			f64 DeltaTime = (ApplicationClock.UpdatedTime - LastFrameTime);
+			LastFrameTime = ApplicationClock.UpdatedTime;
+			// LogDebug("Delta Time: %fms", DeltaTime * 1000);
+
+			if (!Application::Instance->GameInstance->Update(Application::Instance->GameInstance, (f32)DeltaTime))
 			{
 				LogFatal("Game update failed, shutting down");
 				Application::Instance->IsRunning = false;
 			}
 
-			// TODO: pass a real delta time
-			if (!Application::Instance->GameInstance->Render(Application::Instance->GameInstance, 0.f))
+			if (!Application::Instance->GameInstance->Render(Application::Instance->GameInstance, (f32)DeltaTime))
 			{
 				LogFatal("Game render failed, shutting down");
 				Application::Instance->IsRunning = false;
+			}
+
+			// calculate how much we have to sleep
+			f64 ActualFrameTime = Platform::GetAbsoluteTime() - LastFrameTime;
+			f64 RemainingFrameTimeMS = (TargetFrameTime - ActualFrameTime) * 1000.0;
+
+			// NOTE: Check for > 1.0 because we cannot sleep for fractional ms
+			if (RemainingFrameTimeMS > 1.0)
+			{
+				// TODO: Hardcoded for now
+				b8 LimitFps = false;
+				if (LimitFps)
+				{
+					Platform::SleepMS((u64)RemainingFrameTimeMS);
+				}
+			}
+			else if (RemainingFrameTimeMS > 0.0)
+			{
+				LogWarning("Frame missed. Remaining Frame Time: %f ms", RemainingFrameTimeMS);
 			}
 
 			// NOTE: Since the update function for the input swaps
