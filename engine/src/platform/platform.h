@@ -2,17 +2,17 @@
 
 #include "defines.h"
 
+struct PlatformState
+{
+	void *InternalState;
+};
+
 namespace Platform
 {
-	struct State
-	{
-		void *InternalState;
-	};
+	b8 Startup(PlatformState *PlatState, const char *ApplicationName, i32 X, i32 Y, i32 Width, i32 Height);
+	void Terminate(PlatformState *PlatState);
 
-	b8 Startup(State *PlatState, const char *ApplicationName, i32 X, i32 Y, i32 Width, i32 Height);
-	void Terminate(State *PlatState);
-
-	b8 ProcessMessageQueue(State *PlatState);
+	b8 ProcessMessageQueue(PlatformState *PlatState);
 
 	void *Allocate(u64 Size, b8 Alligned);
 	void Free(void *Address, b8 Alligned);

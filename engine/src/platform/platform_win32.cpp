@@ -24,7 +24,7 @@ local_var LARGE_INTEGER StartTime;
 LRESULT CALLBACK
 Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam);
 
-b8 Platform::Startup(Platform::State *PlatState, const char *ApplicationName,
+b8 Platform::Startup(PlatformState *PlatState, const char *ApplicationName,
 					 i32 ClientX, i32 ClientY, i32 ClientWidth, i32 ClientHeight)
 {
 	PlatState->InternalState = malloc(sizeof(InternalState));
@@ -90,7 +90,7 @@ b8 Platform::Startup(Platform::State *PlatState, const char *ApplicationName,
 	return true;
 }
 
-void Platform::Terminate(Platform::State *PlatState)
+void Platform::Terminate(PlatformState *PlatState)
 {
 	// NOTE: Reset the scheduler granlarity
 	timeEndPeriod(SCHEDULER_GRANULARITY);
@@ -106,7 +106,7 @@ void Platform::Terminate(Platform::State *PlatState)
 
 // NOTE: Windows does not need the platform state
 #pragma warning(suppress : 4100)
-b8 Platform::ProcessMessageQueue(Platform::State *PlatState)
+b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 {
 	MSG Message;
 	while (PeekMessageA(&Message, 0, 0, 0, PM_REMOVE))

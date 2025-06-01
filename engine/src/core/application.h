@@ -29,7 +29,7 @@ private:
 	Game *GameInstance;
 	b8 IsRunning = false;
 	b8 IsSuspended = false;
-	Platform::State PlatformState;
+	PlatformState PlatformState;
 	u16 Width;
 	u16 Height;
 };
