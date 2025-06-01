@@ -10,6 +10,8 @@
 #include <windowsx.h>
 #include <stdlib.h>
 
+#define SCHEDULER_GRANULARITY 1
+
 struct InternalState
 {
 	HINSTANCE InstanceHandle;
@@ -76,11 +78,23 @@ b8 Platform::Startup(Platform::State *PlatState, const char *ApplicationName,
 	ClockFrequency = 1.0 / (f64)Frequency.QuadPart;
 	QueryPerformanceCounter(&StartTime);
 
+	// NOTE: Set the Windows scheduler granularity to 1 ms
+	// so that Sleep() can be more granular.
+	// Returns TIMERR_NOCANDO if it fails
+	if (timeBeginPeriod(SCHEDULER_GRANULARITY) != TIMERR_NOERROR)
+	{
+		LogFatal("Could not set the scheduler granularity");
+		return false;
+	}
+
 	return true;
 }
 
 void Platform::Terminate(Platform::State *PlatState)
 {
+	// NOTE: Reset the scheduler granlarity
+	timeEndPeriod(SCHEDULER_GRANULARITY);
+
 	InternalState *State = (InternalState *)PlatState->InternalState;
 
 	if (State->WindowHandle)
@@ -180,7 +194,7 @@ f64 Platform::GetAbsoluteTime()
 {
 	LARGE_INTEGER Now;
 	QueryPerformanceCounter(&Now);
-	return (f64)Now.QuadPart / ClockFrequency;
+	return (f64)Now.QuadPart * ClockFrequency;
 }
 
 void Platform::SleepMS(u64 ms)
