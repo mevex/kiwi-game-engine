@@ -55,3 +55,17 @@ KIWI_API void Logger::Output(LogLevel Level, const char *Message, ...)
 	else
 		Platform::ConsoleWrite(OutMessage, (u8)Level);
 }
+
+void LogAssertion(const char *Expression, const char *File, int Line, const char *Message)
+{
+	if (Message[0])
+	{
+		LogFatal("Assertion failed in file %s, line %d. Expression: %s\n  Message: %s",
+				 File, Line, Expression, Message);
+	}
+	else
+	{
+		LogFatal("Assertion failed in file %s, line %d. Expression: %s",
+				 File, Line, Expression);
+	}
+}
