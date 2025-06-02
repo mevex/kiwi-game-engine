@@ -20,8 +20,6 @@ typedef RENDER(render);
 #define ON_RESIZE(name) void name(Game *GameInstance, u32 Width, u32 Height)
 typedef ON_RESIZE(on_resize);
 
-// NOTE: Forward declaration
-
 struct Game
 {
 	ApplicationConfig AppConfig;
