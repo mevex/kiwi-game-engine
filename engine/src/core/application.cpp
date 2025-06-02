@@ -5,6 +5,7 @@
 #include "core/event.h"
 #include "core/input.h"
 #include "core/timer.h"
+#include "renderer/renderer_frontend.h"
 
 ON_EVENT(HandleEvent);
 ON_EVENT(HandleKey);
@@ -63,6 +64,13 @@ b8 Application::Create(Game *GameInstance)
 		return false;
 	}
 
+	// NOTE: Initialize Renderer after the Platform in order to have a valid PlatformState
+	if (!Renderer::Initialize(AppConfig->Name, &Application::Instance->PlatformState))
+	{
+		LogFatal("Failed to initialize the Renderer");
+		return false;
+	}
+
 	// Initialize the game
 	if (!Application::Instance->GameInstance->Initialize(Application::Instance->GameInstance))
 	{
@@ -103,17 +111,24 @@ b8 Application::Run()
 			LastFrameTime = ApplicationClock.UpdatedTime;
 			// LogDebug("Delta Time: %fms", DeltaTime * 1000);
 
-			if (!Application::Instance->GameInstance->Update(Application::Instance->GameInstance, (f32)DeltaTime))
+			if (!Application::Instance->GameInstance->Update(Application::Instance->GameInstance,
+															 (f32)DeltaTime))
 			{
 				LogFatal("Game update failed, shutting down");
 				Application::Instance->IsRunning = false;
 			}
 
-			if (!Application::Instance->GameInstance->Render(Application::Instance->GameInstance, (f32)DeltaTime))
+			if (!Application::Instance->GameInstance->Render(Application::Instance->GameInstance,
+															 (f32)DeltaTime))
 			{
 				LogFatal("Game render failed, shutting down");
 				Application::Instance->IsRunning = false;
 			}
+
+			// TODO: temporary code! Refactor!
+			RenderPacket Packet;
+			Packet.DeltaTime = (f32)DeltaTime;
+			Renderer::DrawFrame(&Packet);
 
 			// calculate how much we have to sleep
 			f64 ActualFrameTime = Platform::GetAbsoluteTime() - LastFrameTime;
@@ -151,6 +166,7 @@ b8 Application::Run()
 
 	InputSystem::Terminate();
 	EventSystem::Terminate();
+	Renderer::Terminate();
 	Platform::Terminate(&Instance->PlatformState);
 
 	return true;

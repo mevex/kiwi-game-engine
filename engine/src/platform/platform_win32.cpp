@@ -192,6 +192,7 @@ void Platform::ConsoleWriteError(const char *Message, u8 Level)
 
 f64 Platform::GetAbsoluteTime()
 {
+	// TODO: rework all the time stuff to be able to work with f32 safely
 	LARGE_INTEGER Now;
 	QueryPerformanceCounter(&Now);
 	return (f64)Now.QuadPart * ClockFrequency;

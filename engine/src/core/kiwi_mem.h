@@ -8,6 +8,7 @@ enum MemTag
 	MemTag_Application,
 	MemTag_Game,
 	MemTag_KArray,
+	MemTag_Renderer,
 	MemTag_String,
 
 	MemTag_Count
