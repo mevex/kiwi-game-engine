@@ -42,11 +42,11 @@ public:
 	{
 		if (NewSize > Length)
 		{
-			Capacity = NewSize;
 			void *NewBlock = MemSystem::Allocate(NewSize * Stride, MemTag_KArray);
 			MemSystem::Copy(NewBlock, Elements, Length * Stride);
-			MemSystem::Free(Elements, Capacity, MemTag_KArray);
+			MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
 
+			Capacity = NewSize;
 			Elements = (T *)NewBlock;
 		}
 		else
@@ -152,15 +152,20 @@ public:
 		return Elements + Index;
 	}
 
+	T *GetRawData()
+	{
+		return Elements;
+	}
+
 	// NOTE: I want these values to be public fo easy access.
 	// Anyone who messes with them better be really sure about
 	// what they're doing.
-	u64 Length;
-	u64 Capacity;
+	u64 Length = 0;
+	u64 Capacity = 0;
 
 private:
-	u32 Stride;
-	T *Elements;
+	u32 Stride = 0;
+	T *Elements = nullptr;
 
 	// Operators overload
 public:
