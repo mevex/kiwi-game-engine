@@ -172,7 +172,7 @@ b8 Application::Run()
 	return true;
 }
 
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 ON_EVENT(HandleEvent)
 {
 	switch (Code)
@@ -187,7 +187,7 @@ ON_EVENT(HandleEvent)
 	return false;
 }
 
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 ON_EVENT(HandleKey)
 {
 	if (Code == SEC_KeyReleased)

@@ -105,7 +105,7 @@ void Platform::Terminate(PlatformState *PlatState)
 }
 
 // NOTE: Windows does not need the platform state
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 {
 	MSG Message;
@@ -119,14 +119,14 @@ b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 }
 
 // TODO: Use platform specific function (VirtualAlloc)
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 void *Platform::Allocate(u64 Size, b8 Alligned)
 {
 	return malloc(Size);
 }
 
 // TODO: Use platform specific function
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 void Platform::Free(void *Address, b8 Alligned)
 {
 	free(Address);

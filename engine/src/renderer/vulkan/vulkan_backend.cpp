@@ -141,22 +141,23 @@ void VulkanRenderer::Resized()
 }
 
 // TODO: Error
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 {
 	return true;
 }
 
 // TODO: Error
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 {
 	return true;
 }
 
 #ifdef KIWI_SLOW
-#pragma warning(push)
-#pragma warning(disable : 4100)
+// NOTE: we simply don't need some of the parameters
+DISABLE_WARNING_PUSH
+DISABLE_WARNING(4100)
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity,
 												   VkDebugUtilsMessageTypeFlagsEXT MessageTypes,
 												   const VkDebugUtilsMessengerCallbackDataEXT *CallbackData,
@@ -187,5 +188,5 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFl
 	}
 	return VK_FALSE;
 }
-#pragma warning(pop)
+DISABLE_WARNING_POP
 #endif

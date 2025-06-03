@@ -23,7 +23,7 @@ void Renderer::Terminate()
 }
 
 // TODO: Error
-#pragma warning(suppress : 4100)
+SUPPRESS_WARNING(4100)
 void Renderer::OnResized(u16 Width, u16 Height)
 {
 }

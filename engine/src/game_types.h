@@ -7,15 +7,12 @@ struct Game;
 
 #define INITIALIZE(name) b8 name(Game *GameInstance)
 typedef INITIALIZE(initialize);
-#pragma warning(suppress : 4100)
 
 #define UPDATE(name) b8 name(Game *GameInstance, f32 DeltaTime)
 typedef UPDATE(update);
-#pragma warning(suppress : 4100)
 
 #define RENDER(name) b8 name(Game *GameInstance, f32 DeltaTime)
 typedef RENDER(render);
-#pragma warning(suppress : 4100)
 
 #define ON_RESIZE(name) void name(Game *GameInstance, u32 Width, u32 Height)
 typedef ON_RESIZE(on_resize);
