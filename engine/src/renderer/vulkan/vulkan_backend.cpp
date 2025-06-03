@@ -25,7 +25,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	Extensions.Create(3);
 	Extensions.Push(VK_KHR_SURFACE_EXTENSION_NAME); // generic surface ext
 	VulkanPlatform::GetExtensions(Extensions);		// platform-specific extension(s)
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 	Extensions.Push(VK_EXT_DEBUG_UTILS_EXTENSION_NAME); // debug utils
 
 	LogDebug("--- Vulkan Required Extensions:");
@@ -38,7 +38,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 	// Obtain the list of required validation layers
 	KArray<const char *> RequiredLayers;
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 	LogDebug("--- Vulkan validation layers enabled. Enumerating...");
 
 	RequiredLayers.Create();
@@ -87,7 +87,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	VK_CHECK(vkCreateInstance(&InstanceCreateInfo, Context.Allocator, &Context.Instance));
 	LogInfo("Vulkan Instance created");
 
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 	LogDebug("--- Creating Vulkan Debugger");
 
 	VkDebugUtilsMessengerCreateInfoEXT DebugMessengerInfo = {};
@@ -121,7 +121,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 void VulkanRenderer::Terminate()
 {
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 	LogDebug("Destroying Vulkan Debugger");
 	if (Context.DebugMessenger)
 	{
@@ -154,7 +154,7 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 	return true;
 }
 
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 #pragma warning(push)
 #pragma warning(disable : 4100)
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity,

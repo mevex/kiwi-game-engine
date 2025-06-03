@@ -10,12 +10,12 @@ struct VulkanContext
 	VkInstance Instance;
 	VkAllocationCallbacks *Allocator;
 
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 	VkDebugUtilsMessengerEXT DebugMessenger;
 #endif
 };
 
-#if defined(KIWI_SLOW)
+#ifdef KIWI_SLOW
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity,
 												   VkDebugUtilsMessageTypeFlagsEXT MessageTypes,
 												   const VkDebugUtilsMessengerCallbackDataEXT *CallbackData,
