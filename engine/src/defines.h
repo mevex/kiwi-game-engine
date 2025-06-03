@@ -11,10 +11,16 @@ macros and templates that can be usefull in every part of the code
 // NOTE: _MSC_VER GENERALLY means we're building with MSVC,
 // but it can be also defined by the intel compiler. Since we
 // don't plan on supporting it, the check against it is missing.
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #define KIWI_MSVC
-#else
+#elif defined(__GNUC__)
+#define KIWI_GCC
 #error "Only MSVC compiler is supported for now! OMEGALUL"
+#elif defined(__clang__)
+#define KIWI_CLANG
+#error "Only MSVC compiler is supported for now! OMEGALUL"
+#else
+#error "No compiler detected"
 #endif
 
 /*
@@ -126,6 +132,30 @@ StaticAssertMsg(sizeof(f32) == 4, "f32 has an unexpected size");
 StaticAssertMsg(sizeof(f64) == 8, "f64 has an unexpected size");
 
 StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
+
+/*
+        WARNING SUPPRESSION
+*/
+#ifdef KIWI_MSVC
+// NOTE: Since we aren't planning on supporting gcc or clang
+// for real, we'll use the very handy SUPPRESS_WARNING that
+// MSVC allows us to use. For once Microsoft...
+#define DISABLE_WARNING_PUSH __pragma(warning(push))
+#define DISABLE_WARNING_POP __pragma(warning(pop))
+#define DISABLE_WARNING(Code) __pragma(warning(disable : Code))
+#define SUPPRESS_WARNING(Code) __pragma(warning(suppress : Code))
+
+#elif defined(KIWI_GCC) || define(KIWI_CLANG)
+// GCC example for future reference
+#define DISABLE_WARNING_PUSH _Pragma("GCC diagnostic push")
+#define DISABLE_WARNING_POP _Pragma("GCC diagnostic pop")
+
+#define DO_PRAGMA(X) _Pragma(#X)
+#define DISABLE_WARNING(WarningName) DO_PRAGMA(GCC diagnostic ignored #warningName)
+// Then well define for all three compilers a macro like this
+// and use the push-disable-pop tecnique
+#define DISABLE_WARNING_UNREFERENCED_FORMAL_PARAMETER DISABLE_WARNING(-Wunused-parameter)
+#endif
 
 /*
         MISC
