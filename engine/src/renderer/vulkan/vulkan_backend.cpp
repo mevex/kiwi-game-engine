@@ -1,5 +1,6 @@
 #include "vulkan_backend.h"
 #include "vulkan_platform.h"
+#include "vulkan_device.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -56,7 +57,6 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 		b8 Found = false;
 		for (u32 AvailableIndex = 0; AvailableIndex < AvailableLayers.Length; ++AvailableIndex)
 		{
-			VkLayerProperties Prop = AvailableLayers[AvailableIndex];
 			if (KStr::Equal(RequiredLayers[RequiredIndex], AvailableLayers[AvailableIndex].layerName))
 			{
 				Found = true;
@@ -114,6 +114,18 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	LogDebug("Vulkan Debugger successfully created");
 
 #endif
+
+	if (!VulkanPlatform::CreateSurface(PlatState, &Context))
+	{
+		LogFatal("Could not create Vulkan surface");
+		return false;
+	}
+
+	if (!VulkanDeviceCreate(&Context))
+	{
+		LogFatal("Could not create Vulkan device");
+		return false;
+	}
 
 	LogInfo("Vulkan renderer initialized successfully");
 	return true;

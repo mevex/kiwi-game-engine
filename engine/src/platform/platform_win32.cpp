@@ -307,13 +307,35 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 }
 
 // Vulkan-Win32 Platform Specific
+// TODO: Maybe split this?
 #include "renderer/vulkan/vulkan_platform.h"
+#include "renderer/vulkan/vulkan_types.h"
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
 void VulkanPlatform::GetExtensions(KArray<char *> &Extensions)
 {
 	Extensions.Push(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+}
+
+b8 VulkanPlatform::CreateSurface(PlatformState *PlatState, VulkanContext *VkContext)
+{
+	InternalState *State = (InternalState *)PlatState->InternalState;
+
+	VkWin32SurfaceCreateInfoKHR CreateInfo = {};
+	CreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	CreateInfo.hinstance = State->InstanceHandle;
+	CreateInfo.hwnd = State->WindowHandle;
+
+	VkResult Result = vkCreateWin32SurfaceKHR(VkContext->Instance, &CreateInfo,
+											  VkContext->Allocator, &VkContext->Surface);
+	if (Result != VK_SUCCESS)
+	{
+		LogFatal("Vulkan surface creation failed");
+		return false;
+	}
+
+	return true;
 }
 
 #endif // KIWI_WIN
