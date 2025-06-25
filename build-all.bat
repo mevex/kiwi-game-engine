@@ -8,7 +8,7 @@ if not defined VCINSTALLDIR (
 	exit /B
 )
 
-if not exist ..\bin mkdir ..\bin
+if not exist .\bin\ mkdir bin
 
 pushd engine
 call build.bat
