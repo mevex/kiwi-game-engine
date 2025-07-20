@@ -36,8 +36,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	}
 
 	KArray<VkPhysicalDevice> PhysicalDevices;
-	PhysicalDevices.Create(PhysicalDeviceCount);
-	PhysicalDevices.Length = PhysicalDeviceCount;
+	PhysicalDevices.Create(PhysicalDeviceCount, PhysicalDeviceCount);
 	VK_CHECK(vkEnumeratePhysicalDevices(Context->Instance, &PhysicalDeviceCount,
 										PhysicalDevices.GetRawData()));
 
@@ -79,8 +78,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		u32 QueueFamilyCount = 0;
 		KArray<VkQueueFamilyProperties> FamilyProperties;
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, nullptr);
-		FamilyProperties.Create(QueueFamilyCount);
-		FamilyProperties.Length = QueueFamilyCount;
+		FamilyProperties.Create(QueueFamilyCount, QueueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, FamilyProperties.GetRawData());
 
 		u8 MinTransferScore = 255;
@@ -154,8 +152,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 			VK_CHECK(vkEnumerateDeviceExtensionProperties(Device, 0, &AvailableExtensionsCount, 0));
 			if (AvailableExtensionsCount != 0)
 			{
-				ExtensionProperties.Create(AvailableExtensionsCount);
-				ExtensionProperties.Length = AvailableExtensionsCount;
+				ExtensionProperties.Create(AvailableExtensionsCount, AvailableExtensionsCount);
 				VK_CHECK(vkEnumerateDeviceExtensionProperties(Device, 0, &AvailableExtensionsCount,
 															  ExtensionProperties.GetRawData()));
 

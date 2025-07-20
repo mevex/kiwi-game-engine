@@ -41,10 +41,6 @@ b8 EventSystem::Register(u16 Code, void *Listener, on_event OnEvent)
 	}
 
 	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
-	if (Events->Capacity == 0)
-	{
-		Events->Create();
-	}
 
 	for (u64 Index = 0; Index < Events->Length; ++Index)
 	{
@@ -100,10 +96,6 @@ b8 EventSystem::Fire(u16 Code, void *Sender, EventContext Context)
 	}
 
 	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
-	if (Events->Capacity == 0)
-	{
-		Events->Create();
-	}
 
 	for (u64 Index = 0; Index < Events->Length; ++Index)
 	{

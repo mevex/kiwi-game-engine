@@ -5,6 +5,7 @@
 #include "core/logger.h"
 
 #define KARRAY_RESIZE_FACTOR 2
+#define KARRAY_DEFAULT_INIT_CAPACITY 4
 
 // TODO: Do we need shrinking?
 template <typename T>
@@ -21,12 +22,20 @@ public:
 
 	// NOTE: I want to be able to manually controll the creation
 	// destruction of the Elements array if I want/need to
-	void Create(u64 InitialCapacity = 1)
+	KIWI_FORCEINLINE void Reserve(u64 InitialCapacity)
 	{
-		Length = 0;
-		Capacity = InitialCapacity;
-		Stride = sizeof(T);
-		Elements = (T *)MemSystem::Allocate(Capacity * Stride, MemTag_KArray);
+		Create(InitialCapacity, 0);
+	}
+
+	void Create(u64 InitialCapacity, u64 InitialLength)
+	{
+		if (!Elements)
+		{
+			Length = InitialLength;
+			Capacity = InitialCapacity;
+			Stride = sizeof(T);
+			Elements = (T *)MemSystem::Allocate(Capacity * Stride, MemTag_KArray);
+		}
 	}
 
 	void Destroy()
@@ -65,7 +74,7 @@ public:
 	{
 		if (!Elements)
 		{
-			Create();
+			Reserve(KARRAY_DEFAULT_INIT_CAPACITY);
 		}
 
 		if (Length == Capacity)
