@@ -23,7 +23,6 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 	// Obtain the list of required extensions
 	KArray<char *> Extensions;
-	Extensions.Create(3);
 	Extensions.Push(VK_KHR_SURFACE_EXTENSION_NAME); // generic surface ext
 	VulkanPlatform::GetExtensions(Extensions);		// platform-specific extension(s)
 #ifdef KIWI_SLOW
@@ -42,14 +41,12 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 #ifdef KIWI_SLOW
 	LogDebug("--- Vulkan validation layers enabled. Enumerating...");
 
-	RequiredLayers.Create();
 	RequiredLayers.Push("VK_LAYER_KHRONOS_validation");
 
 	KArray<VkLayerProperties> AvailableLayers;
 	u32 AvailableLayersCount = 0;
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, 0));
-	AvailableLayers.Create(AvailableLayersCount);
-	AvailableLayers.Length = AvailableLayersCount;
+	AvailableLayers.Create(AvailableLayersCount, AvailableLayersCount);
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, AvailableLayers.GetRawData()));
 
 	for (u32 RequiredIndex = 0; RequiredIndex < RequiredLayers.Length; ++RequiredIndex)

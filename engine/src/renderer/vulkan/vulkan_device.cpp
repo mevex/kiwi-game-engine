@@ -277,7 +277,8 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 												  &OutSwapchainSupport.FormatCount, nullptr));
 	if (OutSwapchainSupport.FormatCount != 0)
 	{
-		OutSwapchainSupport.Formats.Create(OutSwapchainSupport.FormatCount);
+		OutSwapchainSupport.Formats.Create(OutSwapchainSupport.FormatCount,
+										   OutSwapchainSupport.FormatCount);
 		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface,
 													  &OutSwapchainSupport.FormatCount,
 													  OutSwapchainSupport.Formats.GetRawData()));
@@ -288,7 +289,8 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 													   &OutSwapchainSupport.PresentModeCount, nullptr));
 	if (OutSwapchainSupport.PresentModeCount != 0)
 	{
-		OutSwapchainSupport.PresentModes.Create(OutSwapchainSupport.PresentModeCount);
+		OutSwapchainSupport.PresentModes.Create(OutSwapchainSupport.PresentModeCount,
+												OutSwapchainSupport.PresentModeCount);
 		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface,
 														   &OutSwapchainSupport.PresentModeCount,
 														   OutSwapchainSupport.PresentModes.GetRawData()));
