@@ -29,13 +29,16 @@ public:
 
 	void Create(u64 InitialCapacity, u64 InitialLength)
 	{
-		if (!Elements)
+		if (Elements)
 		{
-			Length = InitialLength;
-			Capacity = InitialCapacity;
-			Stride = sizeof(T);
-			Elements = (T *)MemSystem::Allocate(Capacity * Stride, MemTag_KArray);
+			KDebugBreak();
+			LogWarning("Attempting to create the KArray twice!");
 		}
+
+		Length = InitialLength;
+		Capacity = InitialCapacity;
+		Stride = sizeof(T);
+		Elements = (T *)MemSystem::Allocate(Capacity * Stride, MemTag_KArray);
 	}
 
 	void Destroy()
@@ -49,20 +52,18 @@ public:
 
 	void Resize(u64 NewSize)
 	{
-		if (NewSize > Length)
-		{
-			void *NewBlock = MemSystem::Allocate(NewSize * Stride, MemTag_KArray);
-			MemSystem::Copy(NewBlock, Elements, Length * Stride);
-			MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
-
-			Capacity = NewSize;
-			Elements = (T *)NewBlock;
-		}
-		else
+		if (NewSize <= Length)
 		{
 			KDebugBreak();
-			LogError("Trying to resize the array to a smaller (or equal) value than the actual length.");
+			LogWarning("Trying to resize the array to a smaller (or equal) value than the actual length.");
 		}
+
+		void *NewBlock = MemSystem::Allocate(NewSize * Stride, MemTag_KArray);
+		MemSystem::Copy(NewBlock, Elements, Length * Stride);
+		MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
+
+		Capacity = NewSize;
+		Elements = (T *)NewBlock;
 	}
 
 	void Clear()
@@ -114,9 +115,10 @@ public:
 		}
 		if (Index > Length)
 		{
+			KDebugBreak();
 			LogWarning("Index out of bounds in Array::InsertAt. Max idx: %d. Input idx: %d.",
 					   Length - 1, Index);
-			return nullptr;
+			return;
 		}
 
 		if (Length == Capacity)
