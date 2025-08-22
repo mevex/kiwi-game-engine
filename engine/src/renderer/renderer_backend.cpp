@@ -10,17 +10,17 @@ b8 RendererBackend::Create(RendererBackendType Type, PlatformState *PlatState,
 	{
 		// NOTE: placement new required to populate the __vfptr
 		void *Memory = MemSystem::Allocate(sizeof(VulkanRenderer), MemTag_Renderer);
-		*OutRendererBackend = new (Memory) VulkanRenderer();
+		*OutRendererBackend = new (Memory) VulkanRenderer(); // TODO: This is done in order for the VTABLE to be populated
+	}
 
-		RendererBackend *NewBackend = *OutRendererBackend;
-		NewBackend->Type = RendererBackendType_Vulkan;
-		NewBackend->PlatState = PlatState;
-		NewBackend->FrameCount = 0;
+	RendererBackend *NewBackend = *OutRendererBackend;
+	NewBackend->Type = Type;
+	NewBackend->PlatState = PlatState;
+	NewBackend->FrameCount = 0;
 
-		if (NewBackend->Initialize(ApplicationName))
-		{
-			return true;
-		}
+	if (NewBackend->Initialize(ApplicationName))
+	{
+		return true;
 	}
 
 	return false;

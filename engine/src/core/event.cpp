@@ -10,7 +10,7 @@ b8 EventSystem::Initialize()
 {
 	if (IsInitialized)
 	{
-		LogError("Application already initialized");
+		LogError("EventSystem already initialized");
 		return false;
 	}
 

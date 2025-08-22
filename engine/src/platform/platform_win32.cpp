@@ -294,7 +294,7 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	{
 		// NOTE: Positive values mean that the wheel was rotated forward
 		i32 ZDelta = GET_WHEEL_DELTA_WPARAM(WParam);
-		i8 NumRotations = (i8)(ZDelta / WHEEL_DELTA);
+		i8 NumRotations = (i8)(Clamp(ZDelta, -1, 1));
 		InputSystem::ProcessMouseWheel(NumRotations);
 	}
 	default:
@@ -331,7 +331,7 @@ b8 VulkanPlatform::CreateSurface(PlatformState *PlatState, VulkanContext *VkCont
 											  VkContext->Allocator, &VkContext->Surface);
 	if (Result != VK_SUCCESS)
 	{
-		LogFatal("Vulkan surface creation failed");
+		LogFatal("Win32 Vulkan surface creation failed");
 		return false;
 	}
 

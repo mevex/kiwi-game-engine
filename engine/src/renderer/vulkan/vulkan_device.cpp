@@ -11,9 +11,9 @@ struct PhysicalDeviceRequirements
 	b8 Compute;
 	b8 Transfer;
 
-	KArray<char *> ExtentionNames;
 	b8 SamplerAnisotropy;
 	b8 DiscreteGPU;
+	KArray<char *> ExtentionNames;
 };
 
 struct PhysicalDeviceQueueFamilyInfo
@@ -65,12 +65,24 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		PhysicalDeviceQueueFamilyInfo QueueInfo = {(u32)-1, (u32)-1, (u32)-1, (u32)-1};
 
 		// Check if the GPU is descrete
-		if (Requirements.DiscreteGPU)
+		// HACK: Quick hack to turn the logic that RQUIRES a discrete GPU
+		// into one that just checks if there is one,
+		// this allows me to develop also on my poor laptop. SADGE
+		for (u32 i = 0; i < PhysicalDevices.Length; ++i)
 		{
-			if (Properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			VkPhysicalDevice Dev = PhysicalDevices[i];
+			VkPhysicalDeviceProperties Prop;
+			vkGetPhysicalDeviceProperties(Dev, &Prop);
+			// HACK: In order to go back to normal
+			// remove the for loop and the above variables.
+
+			if (Requirements.DiscreteGPU)
 			{
-				LogInfo("Device %d is not a discrete GPU. Skipping.", Index);
-				continue;
+				if (Prop.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+				{
+					LogInfo("Device %d is not a discrete GPU", i);
+					continue;
+				}
 			}
 		}
 
