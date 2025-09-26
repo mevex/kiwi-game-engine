@@ -19,7 +19,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	AppInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	AppInfo.pEngineName = "Kiwi Engine";
 	AppInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	AppInfo.apiVersion = VK_API_VERSION_1_4;
+	AppInfo.apiVersion = VK_API_VERSION_1_3;
 
 	// Obtain the list of required extensions
 	KArray<char *> Extensions;
