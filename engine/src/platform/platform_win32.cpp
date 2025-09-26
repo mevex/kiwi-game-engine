@@ -335,6 +335,7 @@ b8 VulkanPlatform::CreateSurface(PlatformState *PlatState, VulkanContext *VkCont
 		return false;
 	}
 
+	LogInfo("Win32 Vulkan surface created successfully");
 	return true;
 }
 

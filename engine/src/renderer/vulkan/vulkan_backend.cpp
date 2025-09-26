@@ -47,7 +47,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	u32 AvailableLayersCount = 0;
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, 0));
 	AvailableLayers.Create(AvailableLayersCount, AvailableLayersCount);
-	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, AvailableLayers.GetRawData()));
+	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, AvailableLayers.Elements));
 
 	for (u32 RequiredIndex = 0; RequiredIndex < RequiredLayers.Length; ++RequiredIndex)
 	{
@@ -77,9 +77,9 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	InstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	InstanceCreateInfo.pApplicationInfo = &AppInfo;
 	InstanceCreateInfo.enabledLayerCount = (u32)RequiredLayers.Length;
-	InstanceCreateInfo.ppEnabledLayerNames = RequiredLayers.GetRawData();
+	InstanceCreateInfo.ppEnabledLayerNames = RequiredLayers.Elements;
 	InstanceCreateInfo.enabledExtensionCount = (u32)Extensions.Length;
-	InstanceCreateInfo.ppEnabledExtensionNames = Extensions.GetRawData();
+	InstanceCreateInfo.ppEnabledExtensionNames = Extensions.Elements;
 
 	VK_CHECK(vkCreateInstance(&InstanceCreateInfo, Context.Allocator, &Context.Instance));
 	LogInfo("Vulkan Instance created");

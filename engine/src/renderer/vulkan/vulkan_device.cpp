@@ -38,7 +38,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	KArray<VkPhysicalDevice> PhysicalDevices;
 	PhysicalDevices.Create(PhysicalDeviceCount, PhysicalDeviceCount);
 	VK_CHECK(vkEnumeratePhysicalDevices(Context->Instance, &PhysicalDeviceCount,
-										PhysicalDevices.GetRawData()));
+										PhysicalDevices.Elements));
 
 	// TODO: These should be driven by the engine configuration
 	PhysicalDeviceRequirements Requirements = {};
@@ -91,7 +91,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		KArray<VkQueueFamilyProperties> FamilyProperties;
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, nullptr);
 		FamilyProperties.Create(QueueFamilyCount, QueueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, FamilyProperties.GetRawData());
+		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, FamilyProperties.Elements);
 
 		u8 MinTransferScore = 255;
 		for (u32 FamIdx = 0; FamIdx < FamilyProperties.Length; ++FamIdx)
@@ -133,8 +133,12 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 				QueueInfo.PresentIndex = FamIdx;
 			}
 		}
+
+		// TODO: Use scratch space instead
+		FamilyProperties.Destroy();
+
 		LogInfo("Graphics | Present | Compute | Transfer | Name");
-		LogInfo("       %d |       %d |        %d |       %d | %s",
+		LogInfo("       %d |       %d |       %d |        %d | %s",
 				QueueInfo.GraphicsIndex, QueueInfo.PresentIndex,
 				QueueInfo.ComputeIndex, QueueInfo.TransferIndex, Properties.deviceName);
 
@@ -166,7 +170,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 			{
 				ExtensionProperties.Create(AvailableExtensionsCount, AvailableExtensionsCount);
 				VK_CHECK(vkEnumerateDeviceExtensionProperties(Device, 0, &AvailableExtensionsCount,
-															  ExtensionProperties.GetRawData()));
+															  ExtensionProperties.Elements));
 
 				b8 Found = true;
 				for (u32 ReqIdx = 0; ReqIdx < Requirements.ExtentionNames.Length && Found; ++ReqIdx)
@@ -186,6 +190,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 					{
 						LogInfo("Could not find extension %s. Skipping.",
 								Requirements.ExtentionNames[ReqIdx]);
+						break;
 					}
 				}
 
@@ -194,6 +199,9 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 					continue;
 				}
 			}
+
+			// TODO: Use scratch space instead
+			ExtensionProperties.Destroy();
 		}
 
 		if (Requirements.SamplerAnisotropy && !Features.samplerAnisotropy)
@@ -273,6 +281,9 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		return true;
 	}
 
+	// TODO: Use scratch space instead
+	PhysicalDevices.Destroy();
+
 	LogError("No physical device that meets the requirement found");
 	return false;
 }
@@ -293,7 +304,7 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 										   OutSwapchainSupport.FormatCount);
 		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface,
 													  &OutSwapchainSupport.FormatCount,
-													  OutSwapchainSupport.Formats.GetRawData()));
+													  OutSwapchainSupport.Formats.Elements));
 	}
 
 	// Present modes
@@ -305,7 +316,7 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 												OutSwapchainSupport.PresentModeCount);
 		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface,
 														   &OutSwapchainSupport.PresentModeCount,
-														   OutSwapchainSupport.PresentModes.GetRawData()));
+														   OutSwapchainSupport.PresentModes.Elements));
 	}
 }
 

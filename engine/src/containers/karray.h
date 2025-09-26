@@ -1,5 +1,15 @@
 #pragma once
 
+/*
+NOTE: I realize that implementing a dynamic array from scratch
+and trying to be smart about it is probably a very bad idea
+in practical terms.
+However, I’m convinced it will be a valuable learning experience
+both for understanding the language better and from
+an architectural perspective—even if it means rewriting it
+many many times.
+*/
+
 #include "defines.h"
 #include "core/kiwi_mem.h"
 #include "core/logger.h"
@@ -12,22 +22,8 @@ template <typename T>
 class KIWI_API KArray
 {
 public:
-	KArray() {}
-
-	~KArray()
-	{
-		if (Elements)
-			Destroy();
-	}
-
-	// NOTE: I want to be able to manually controll the creation
-	// destruction of the Elements array if I want/need to
-	KIWI_FORCEINLINE void Reserve(u64 InitialCapacity)
-	{
-		Create(InitialCapacity, 0);
-	}
-
-	void Create(u64 InitialCapacity, u64 InitialLength)
+	// NOTE: I want to manually controll the creation destruction of the elements
+	void Create(u64 InitialCapacity = KARRAY_DEFAULT_INIT_CAPACITY, u64 InitialLength = 0)
 	{
 		if (Elements)
 		{
@@ -75,7 +71,7 @@ public:
 	{
 		if (!Elements)
 		{
-			Reserve(KARRAY_DEFAULT_INIT_CAPACITY);
+			Create();
 		}
 
 		if (Length == Capacity)
@@ -123,7 +119,10 @@ public:
 
 		if (Length == Capacity)
 		{
-			Resize(Capacity * KARRAY_RESIZE_FACTOR);
+			if (Capacity > 0)
+				Resize(Capacity * KARRAY_RESIZE_FACTOR);
+			else
+				Create();
 		}
 
 		MemSystem::Copy(Elements + Index + 1, Elements + Index, (Length - Index) * Stride);
@@ -163,20 +162,13 @@ public:
 		return Elements + Index;
 	}
 
-	T *GetRawData()
-	{
-		return Elements;
-	}
-
 	// NOTE: I want these values to be public fo easy access.
 	// Anyone who messes with them better be really sure about
 	// what they're doing.
-	u64 Length = 0;
-	u64 Capacity = 0;
-
-private:
-	u32 Stride = 0;
-	T *Elements = nullptr;
+	u64 Length;
+	u64 Capacity;
+	u32 Stride;
+	T *Elements;
 
 	// Operators overload
 public:
