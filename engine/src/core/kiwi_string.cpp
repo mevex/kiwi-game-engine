@@ -14,7 +14,8 @@ char *KStr::Duplicate(const char *Str)
 	// NOTE: +1 for the null terminator
 	u64 Len = KStr::Length(Str) + 1;
 
-	char *Copy = (char *)MemSystem::Allocate(Len, MemTag_String, true);
+	// TODO: This had MakeZeroes set to true
+	char *Copy = (char *)MemSystem::Allocate(Len, MemTag_String);
 	MemSystem::Copy(Copy, (void *)Str, Len);
 
 	return Copy;
