@@ -8,8 +8,8 @@ struct PhysicalDeviceRequirements
 	// Queues
 	b8 Graphics;
 	b8 Present;
-	b8 Compute;
 	b8 Transfer;
+	b8 Compute;
 
 	b8 SamplerAnisotropy;
 	b8 DiscreteGPU;
@@ -20,12 +20,94 @@ struct PhysicalDeviceQueueFamilyInfo
 {
 	u32 GraphicsIndex;
 	u32 PresentIndex;
-	u32 ComputeIndex;
 	u32 TransferIndex;
+	u32 ComputeIndex;
 };
 
 b8 VulkanDeviceCreate(VulkanContext *Context)
 {
+	if (!SelectPhysicalDevice(Context))
+	{
+		return false;
+	}
+
+	LogInfo("Creating logical device");
+	// NOTE: Don't create additional queues for shared indices
+	VulkanDevice &Device = Context->Device;
+	KArray<u32> Indices;
+	Indices.Push(Device.GraphicsIndex);
+	if (!(Device.GraphicsIndex == Device.PresentIndex))
+	{
+		Indices.Push(Device.PresentIndex);
+	}
+	if (!(Device.GraphicsIndex == Device.TransferIndex))
+	{
+		Indices.Push(Device.TransferIndex);
+	}
+	if (!(Device.GraphicsIndex == Device.ComputeIndex))
+	{
+		Indices.Push(Device.ComputeIndex);
+	}
+
+	KArray<VkDeviceQueueCreateInfo> QueueCreateInfos;
+	QueueCreateInfos.Create(Indices.Length, Indices.Length);
+
+	// NOTE: Since we know that we will create maximum 2 queues (graphics queues)
+	// we need an array with 2 values, one for each queue, to pass to the
+	// VkDeviceQueueCreateInfo structure
+	f32 QueuePriorities[2] = {1.0f, 1.0f};
+
+	for (u32 Idx = 0; Idx < QueueCreateInfos.Length; ++Idx)
+	{
+		VkDeviceQueueCreateInfo &Info = QueueCreateInfos[Idx];
+
+		Info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		Info.queueFamilyIndex = Indices[Idx];
+		Info.queueCount = 1;
+		if (Indices[Idx] == Device.GraphicsIndex)
+		{
+			Info.queueCount = 2;
+		}
+		Info.flags = 0;
+		Info.pNext = 0;
+		Info.pQueuePriorities = QueuePriorities;
+	}
+
+	// Request device features
+	// TODO: These should be driven by the engine configuration
+	VkPhysicalDeviceFeatures DeviceFeatures = {};
+	DeviceFeatures.samplerAnisotropy = VK_TRUE;
+
+	char *ExtensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+	VkDeviceCreateInfo DeviceCreateInfo = {};
+	DeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	DeviceCreateInfo.queueCreateInfoCount = (u32)QueueCreateInfos.Length;
+	DeviceCreateInfo.pQueueCreateInfos = QueueCreateInfos.Elements;
+	DeviceCreateInfo.pEnabledFeatures = &DeviceFeatures;
+	DeviceCreateInfo.ppEnabledExtensionNames = &ExtensionName;
+	// Those are deprecated
+	// DeviceCreateInfo.enabledLayerCount = 0;
+	// DeviceCreateInfo.ppEnabledLayerNames = 0;
+
+	VK_CHECK(vkCreateDevice(Device.PhysicalDevice, &DeviceCreateInfo,
+							Context->Allocator, &Device.LogicalDevice));
+
+	LogInfo("Logical device created");
+
+	// Get queues
+	vkGetDeviceQueue(Device.LogicalDevice, Device.GraphicsIndex, 0, &Device.GraphicsQueue);
+	vkGetDeviceQueue(Device.LogicalDevice, Device.PresentIndex, 0, &Device.PresentQueue);
+	vkGetDeviceQueue(Device.LogicalDevice, Device.TransferIndex, 0, &Device.TransferQueue);
+	vkGetDeviceQueue(Device.LogicalDevice, Device.ComputeIndex, 0, &Device.ComputeQueue);
+
+	LogInfo("Queues obtained");
+
+	return true;
+}
+
+b8 SelectPhysicalDevice(VulkanContext *Context)
+{
+	LogInfo("Selecting physical device");
 	// Querying for the appropriate physical device
 	u32 PhysicalDeviceCount = 0;
 	VK_CHECK(vkEnumeratePhysicalDevices(Context->Instance, &PhysicalDeviceCount, nullptr));
@@ -44,8 +126,8 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	PhysicalDeviceRequirements Requirements = {};
 	Requirements.Graphics = true;
 	Requirements.Present = true;
-	Requirements.Compute = true;
 	Requirements.Transfer = true;
+	Requirements.Compute = true;
 	Requirements.SamplerAnisotropy = true;
 	Requirements.DiscreteGPU = true;
 	Requirements.ExtentionNames.Push(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -137,16 +219,16 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		// TODO: Use scratch space instead
 		FamilyProperties.Destroy();
 
-		LogInfo("Graphics | Present | Compute | Transfer | Name");
-		LogInfo("       %d |       %d |       %d |        %d | %s",
+		LogInfo("Graphics | Present | Transfer | Compute | Name");
+		LogInfo("       %d |       %d |       %d  |       %d | %s",
 				QueueInfo.GraphicsIndex, QueueInfo.PresentIndex,
-				QueueInfo.ComputeIndex, QueueInfo.TransferIndex, Properties.deviceName);
+				QueueInfo.TransferIndex, QueueInfo.ComputeIndex, Properties.deviceName);
 
 		VulkanSwapchainSupport SwapchainSupport = {};
 		if ((!Requirements.Graphics || (Requirements.Graphics && QueueInfo.GraphicsIndex != (u32)-1)) &&
 			(!Requirements.Present || (Requirements.Present && QueueInfo.PresentIndex != (u32)-1)) &&
-			(!Requirements.Compute || (Requirements.Compute && QueueInfo.ComputeIndex != (u32)-1)) &&
-			(!Requirements.Transfer || (Requirements.Transfer && QueueInfo.TransferIndex != (u32)-1)))
+			(!Requirements.Transfer || (Requirements.Transfer && QueueInfo.TransferIndex != (u32)-1)) &&
+			(!Requirements.Compute || (Requirements.Compute && QueueInfo.ComputeIndex != (u32)-1)))
 		{
 			VulkanDeviceQuerySwapchainSupport(Device, Context->Surface, SwapchainSupport);
 
@@ -216,8 +298,8 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 
 		Context->Device.GraphicsIndex = QueueInfo.GraphicsIndex;
 		Context->Device.PresentIndex = QueueInfo.PresentIndex;
-		Context->Device.ComputeIndex = QueueInfo.ComputeIndex;
 		Context->Device.TransferIndex = QueueInfo.TransferIndex;
+		Context->Device.ComputeIndex = QueueInfo.ComputeIndex;
 
 		Context->Device.Properties = Properties;
 		Context->Device.Features = Features;
@@ -322,6 +404,40 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 
 void VulkanDeviceDestroy(VulkanContext *Context)
 {
-	// TODO:
-	Context;
+	LogInfo("Destroying logical device");
+	if (Context->Device.LogicalDevice)
+	{
+		vkDestroyDevice(Context->Device.LogicalDevice, Context->Allocator);
+		Context->Device.LogicalDevice = nullptr;
+	}
+
+	// Unset queue
+	Context->Device.GraphicsQueue = 0;
+	Context->Device.PresentQueue = 0;
+	Context->Device.TransferQueue = 0;
+	Context->Device.ComputeQueue = 0;
+
+	// NOTE: there is not such a thing like destroying a physical device
+	// but we can release all the resources that we obtained during creation
+	LogInfo("Releasing physical device resources");
+	Context->Device.PhysicalDevice = 0;
+
+	if (Context->Device.SwapchainSupport.FormatCount)
+	{
+		Context->Device.SwapchainSupport.FormatCount = 0;
+		Context->Device.SwapchainSupport.Formats.Destroy();
+	}
+	if (Context->Device.SwapchainSupport.PresentModeCount)
+	{
+		Context->Device.SwapchainSupport.PresentModeCount = 0;
+		Context->Device.SwapchainSupport.PresentModes.Destroy();
+	}
+
+	MemSystem::Zero(&Context->Device.SwapchainSupport.Capabilities,
+					sizeof(Context->Device.SwapchainSupport.Capabilities));
+
+	Context->Device.GraphicsIndex = (u32)(-1);
+	Context->Device.PresentIndex = (u32)(-1);
+	Context->Device.TransferIndex = (u32)(-1);
+	Context->Device.ComputeIndex = (u32)(-1);
 }
