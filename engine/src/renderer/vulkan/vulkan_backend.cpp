@@ -130,6 +130,16 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 void VulkanRenderer::Terminate()
 {
+	LogDebug("Destroying Vulkan device");
+	VulkanDeviceDestroy(&Context);
+
+	LogDebug("Destroying Vulkan surface");
+	if (Context.Surface)
+	{
+		vkDestroySurfaceKHR(Context.Instance, Context.Surface, Context.Allocator);
+		Context.Surface = 0;
+	}
+
 #ifdef KIWI_SLOW
 	LogDebug("Destroying Vulkan Debugger");
 	if (Context.DebugMessenger)
