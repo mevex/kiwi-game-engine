@@ -25,7 +25,7 @@ public:
 	// NOTE: I want to manually controll the creation destruction of the elements
 	void Create(u64 InitialCapacity = KARRAY_DEFAULT_INIT_CAPACITY, u64 InitialLength = 0)
 	{
-		if (Elements)
+		if (Capacity > 0)
 		{
 			KDebugBreak();
 			LogWarning("Attempting to create the KArray twice!");
@@ -69,7 +69,7 @@ public:
 
 	void Push(T Element)
 	{
-		if (!Elements)
+		if (Capacity == 0)
 		{
 			Create();
 		}
@@ -99,7 +99,7 @@ public:
 
 	void InsertAt(T Element, u64 Index)
 	{
-		if (!Elements)
+		if (Capacity == 0)
 		{
 			Create();
 		}
@@ -165,10 +165,10 @@ public:
 	// NOTE: I want these values to be public fo easy access.
 	// Anyone who messes with them better be really sure about
 	// what they're doing.
-	u64 Length;
-	u64 Capacity;
-	u32 Stride;
-	T *Elements;
+	u64 Length = 0;
+	u64 Capacity = 0;
+	u32 Stride = 0;
+	T *Elements = nullptr;
 
 	// Operators overload
 public:
