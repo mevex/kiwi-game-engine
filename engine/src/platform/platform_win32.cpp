@@ -5,6 +5,7 @@
 #include "core/logger.h"
 #include "core/input.h"
 #include "core/event.h"
+#include "core/kiwi_mem.h"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -27,6 +28,7 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 b8 Platform::Startup(PlatformState *PlatState, const char *ApplicationName,
 					 i32 ClientX, i32 ClientY, i32 ClientWidth, i32 ClientHeight)
 {
+	// TODO: Replace malloc
 	PlatState->InternalState = malloc(sizeof(InternalState));
 	InternalState *State = (InternalState *)PlatState->InternalState;
 
@@ -118,18 +120,116 @@ b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 	return true;
 }
 
-// TODO: Use platform specific function (VirtualAlloc)
-SUPPRESS_WARNING(4100)
-void *Platform::Allocate(u64 Size, b8 Alligned)
+void Platform::GetMemoryInfo(u32 &OutPageSize, u32 &OutAllocationGranularity)
 {
-	return malloc(Size);
+	// Retrieve the system informations
+	SYSTEM_INFO SystemInfo;
+	GetSystemInfo(&SystemInfo);
+
+	OutPageSize = (u32)SystemInfo.dwPageSize;
+	OutAllocationGranularity = (u32)SystemInfo.dwAllocationGranularity;
+};
+
+void Platform::TranslateAllocSpecifiers(u32 MemAllocFlags, u32 &OutAllocType, u32 &OutProtectionType)
+{
+	// Allocation types
+	if (CheckFlags(MemAllocFlags, MemAlloc_Commit))
+	{
+		OutAllocType |= MEM_COMMIT;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_Reserve))
+	{
+		OutAllocType |= MEM_RESERVE;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_Reset))
+	{
+		OutAllocType |= MEM_RESET;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ResetUndo))
+	{
+		OutAllocType |= MEM_RESET_UNDO;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_LargePages))
+	{
+		OutAllocType |= MEM_LARGE_PAGES;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_Physical))
+	{
+		OutAllocType |= MEM_PHYSICAL;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_TopDown))
+	{
+		OutAllocType |= MEM_TOP_DOWN;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_WriteWatch))
+	{
+		OutAllocType |= MEM_WRITE_WATCH;
+	}
+
+	// Protection Type
+	if (CheckFlags(MemAllocFlags, MemAlloc_Execute))
+	{
+		OutProtectionType |= PAGE_EXECUTE;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ExecuteRead))
+	{
+		OutProtectionType |= PAGE_EXECUTE_READ;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ExecuteReadWrite))
+	{
+		OutProtectionType |= PAGE_EXECUTE_READWRITE;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ExecuteWriteCopy))
+	{
+		OutProtectionType |= PAGE_EXECUTE_WRITECOPY;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_NoAccess))
+	{
+		OutProtectionType |= PAGE_NOACCESS;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ReadOnly))
+	{
+		OutProtectionType |= PAGE_READONLY;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_ReadWrite))
+	{
+		OutProtectionType |= PAGE_READWRITE;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_WriteCopy))
+	{
+		OutProtectionType |= PAGE_WRITECOPY;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_Guard))
+	{
+		OutProtectionType |= PAGE_GUARD;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_NoCache))
+	{
+		OutProtectionType |= PAGE_NOCACHE;
+	}
+	if (CheckFlags(MemAllocFlags, MemAlloc_WriteCombine))
+	{
+		OutProtectionType |= PAGE_WRITECOMBINE;
+	}
 }
 
-// TODO: Use platform specific function
-SUPPRESS_WARNING(4100)
-void Platform::Free(void *Address, b8 Alligned)
+// SUPPRESS_WARNING(4100)
+void *Platform::Allocate(u64 Size, u32 MemAllocFlags)
 {
-	free(Address);
+	u32 AllocationType = 0;
+	u32 ProtectionType = 0;
+	TranslateAllocSpecifiers(MemAllocFlags, AllocationType, ProtectionType);
+
+	LogTrace("Alloc with size %d", Size);
+	return VirtualAlloc(nullptr, Size, AllocationType, ProtectionType);
+}
+
+void Platform::Free(void *Address, u64 Size, u8 MemDeallocFlag)
+{
+	b8 IsRelease = CheckFlags(MemDeallocFlag, MemDealloc_Release);
+	VirtualFree(Address,
+				IsRelease ? 0 : Size,
+				IsRelease ? MEM_RELEASE : MEM_DECOMMIT);
 }
 
 void Platform::SetMem(void *Address, u64 Size, u32 Value)

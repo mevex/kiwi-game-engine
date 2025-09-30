@@ -10,18 +10,21 @@ local_var const char *MemTagStrings[MemTag_Count] = {
 	"MemTag_String",
 };
 
+u32 MemSystem::PageSize = 0;
+u32 MemSystem::AllocationGranularity = 0;
 u64 MemSystem::TotalAllocated = 0;
 u64 MemSystem::TaggedAllocated[MemTag_Count] = {};
 
 void MemSystem::Initialize()
 {
+	Platform::GetMemoryInfo(PageSize, AllocationGranularity);
 }
 
 void MemSystem::Terminate()
 {
 }
 
-void *MemSystem::Allocate(u64 Size, u8 Tag, b8 MakeZero)
+void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
 {
 	if (Tag == MemTag_Unknown)
 	{
@@ -31,17 +34,12 @@ void *MemSystem::Allocate(u64 Size, u8 Tag, b8 MakeZero)
 	MemSystem::TotalAllocated += Size;
 	MemSystem::TaggedAllocated[Tag] += Size;
 
-	// TODO: Memory allignment
-	void *MemBlock = Platform::Allocate(Size, false);
-	if (MakeZero)
-	{
-		Platform::ZeroMem(MemBlock, Size);
-	}
+	void *MemBlock = Platform::Allocate(Size, MemAllocFlags);
 
 	return MemBlock;
 }
 
-void MemSystem::Free(void *Address, u64 Size, MemTag Tag)
+void MemSystem::Free(void *Address, u64 Size, u8 Tag, u8 MemDeallocFlag)
 {
 	if (Tag == MemTag_Unknown)
 	{
@@ -52,7 +50,7 @@ void MemSystem::Free(void *Address, u64 Size, MemTag Tag)
 	MemSystem::TaggedAllocated[Tag] -= Size;
 
 	// TODO: Memory allignment
-	Platform::Free(Address, false);
+	Platform::Free(Address, Size, MemDeallocFlag);
 }
 
 void MemSystem::Set(void *Address, u64 Size, u32 Value)
