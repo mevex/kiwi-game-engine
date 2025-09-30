@@ -23,8 +23,14 @@ struct VulkanDevice
 
 	u32 GraphicsIndex;
 	u32 PresentIndex;
-	u32 ComputeIndex;
 	u32 TransferIndex;
+	// NOTE: We will probably not use compute at first
+	u32 ComputeIndex;
+
+	VkQueue GraphicsQueue;
+	VkQueue PresentQueue;
+	VkQueue TransferQueue;
+	VkQueue ComputeQueue;
 
 	VkPhysicalDeviceProperties Properties;
 	VkPhysicalDeviceFeatures Features;
