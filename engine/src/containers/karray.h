@@ -88,7 +88,7 @@ public:
 		if (Length <= 0)
 		{
 			LogWarning("Trying to pop from an empty array");
-			return nullptr
+			return nullptr;
 		}
 
 		T *Element = Elements + (Length - 1);

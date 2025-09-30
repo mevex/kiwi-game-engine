@@ -8,7 +8,7 @@ struct VulkanContext;
 
 namespace VulkanPlatform
 {
-	void GetExtensions(KArray<char *> &Extensions);
+	void GetExtensions(KArray<const char *> &Extensions);
 
 	b8 CreateSurface(PlatformState *PlatState, VulkanContext *VkContext);
 }

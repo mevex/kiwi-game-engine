@@ -22,7 +22,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	AppInfo.apiVersion = VK_API_VERSION_1_3;
 
 	// Obtain the list of required extensions
-	KArray<char *> Extensions;
+	KArray<const char *> Extensions;
 	Extensions.Push(VK_KHR_SURFACE_EXTENSION_NAME); // generic surface ext
 	VulkanPlatform::GetExtensions(Extensions);		// platform-specific extension(s)
 #ifdef KIWI_SLOW

@@ -13,7 +13,7 @@ struct PhysicalDeviceRequirements
 
 	b8 SamplerAnisotropy;
 	b8 DiscreteGPU;
-	KArray<char *> ExtentionNames;
+	KArray<const char *> ExtentionNames;
 };
 
 struct PhysicalDeviceQueueFamilyInfo
@@ -78,7 +78,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	VkPhysicalDeviceFeatures DeviceFeatures = {};
 	DeviceFeatures.samplerAnisotropy = VK_TRUE;
 
-	char *ExtensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+	const char *ExtensionName = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 	VkDeviceCreateInfo DeviceCreateInfo = {};
 	DeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	DeviceCreateInfo.queueCreateInfoCount = (u32)QueueCreateInfos.Length;

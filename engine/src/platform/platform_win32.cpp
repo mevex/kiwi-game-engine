@@ -313,7 +313,7 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_win32.h"
 
-void VulkanPlatform::GetExtensions(KArray<char *> &Extensions)
+void VulkanPlatform::GetExtensions(KArray<const char *> &Extensions)
 {
 	Extensions.Push(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 }
