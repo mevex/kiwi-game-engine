@@ -58,11 +58,11 @@ public:
 	static void Initialize();
 	static void Terminate();
 
-	static void *Allocate(void *Address, u64 Size, u8 Tag,
-								   u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
-	static void *Allocate(u64 Size, u8 Tag, u32 MemAllocFlags);
+	static void *Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags);
+	static void *Allocate(u64 Size, u8 Tag,
+						  u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
 	static void Free(void *Address, u64 Size, u8 Tag,
-							  u8 MemDeallocFlag = MemDealloc_Release);
+					 u8 MemDeallocFlag = MemDealloc_Release);
 	static void Set(void *Address, u64 Size, u32 Value);
 	static void Zero(void *Address, u64 Size);
 	static void Copy(void *Dest, void *Source, u64 Size);
