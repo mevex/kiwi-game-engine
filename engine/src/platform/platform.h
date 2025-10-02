@@ -16,7 +16,7 @@ namespace Platform
 
 	void GetMemoryInfo(u32 &OutPageSize, u32 &OutAllocationGranularity);
 	void TranslateAllocSpecifiers(u32 MemAllocFlags, u32 &OutAllocType, u32 &OutProtectionType);
-	void *Allocate(u64 Size, u32 MemAllocFlags);
+	void *Allocate(void *Address, u64 Size, u32 MemAllocFlags);
 	void Free(void *Address, u64 Size, u8 MemDeallocFlag);
 	void SetMem(void *Address, u64 Size, u32 Value);
 	void ZeroMem(void *Address, u64 Size);

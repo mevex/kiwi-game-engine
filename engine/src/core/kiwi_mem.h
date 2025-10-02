@@ -52,20 +52,21 @@ enum MemDealloc
 };
 
 // NOTE: this is a singleton
-class MemSystem
+class KIWI_API MemSystem
 {
 public:
-	KIWI_API static void Initialize();
-	KIWI_API static void Terminate();
+	static void Initialize();
+	static void Terminate();
 
-	KIWI_API static void *Allocate(u64 Size, u8 Tag,
+	static void *Allocate(void *Address, u64 Size, u8 Tag,
 								   u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
-	KIWI_API static void Free(void *Address, u64 Size, u8 Tag,
+	static void *Allocate(u64 Size, u8 Tag, u32 MemAllocFlags);
+	static void Free(void *Address, u64 Size, u8 Tag,
 							  u8 MemDeallocFlag = MemDealloc_Release);
-	KIWI_API static void Set(void *Address, u64 Size, u32 Value);
-	KIWI_API static void Zero(void *Address, u64 Size);
-	KIWI_API static void Copy(void *Dest, void *Source, u64 Size);
-	KIWI_API static char *Report();
+	static void Set(void *Address, u64 Size, u32 Value);
+	static void Zero(void *Address, u64 Size);
+	static void Copy(void *Dest, void *Source, u64 Size);
+	static char *Report();
 
 private:
 	static u32 PageSize;

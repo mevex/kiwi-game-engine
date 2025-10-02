@@ -22,9 +22,10 @@ void MemSystem::Initialize()
 
 void MemSystem::Terminate()
 {
+	Report();
 }
 
-void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
+void *MemSystem::Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags)
 {
 	if (Tag == MemTag_Unknown)
 	{
@@ -34,9 +35,14 @@ void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
 	MemSystem::TotalAllocated += Size;
 	MemSystem::TaggedAllocated[Tag] += Size;
 
-	void *MemBlock = Platform::Allocate(Size, MemAllocFlags);
+	void *MemBlock = Platform::Allocate(Address, Size, MemAllocFlags);
 
 	return MemBlock;
+}
+
+void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
+{
+	return Allocate(nullptr, Size, Tag, MemAllocFlags);
 }
 
 void MemSystem::Free(void *Address, u64 Size, u8 Tag, u8 MemDeallocFlag)

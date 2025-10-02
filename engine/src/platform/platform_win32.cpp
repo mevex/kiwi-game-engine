@@ -213,15 +213,14 @@ void Platform::TranslateAllocSpecifiers(u32 MemAllocFlags, u32 &OutAllocType, u3
 	}
 }
 
-// SUPPRESS_WARNING(4100)
-void *Platform::Allocate(u64 Size, u32 MemAllocFlags)
+void *Platform::Allocate(void *Address, u64 Size, u32 MemAllocFlags)
 {
 	u32 AllocationType = 0;
 	u32 ProtectionType = 0;
 	TranslateAllocSpecifiers(MemAllocFlags, AllocationType, ProtectionType);
 
 	LogTrace("Alloc with size %d", Size);
-	return VirtualAlloc(nullptr, Size, AllocationType, ProtectionType);
+	return VirtualAlloc(Address, Size, AllocationType, ProtectionType);
 }
 
 void Platform::Free(void *Address, u64 Size, u8 MemDeallocFlag)
