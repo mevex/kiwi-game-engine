@@ -68,9 +68,35 @@ public:
 	static void Copy(void *Dest, void *Source, u64 Size);
 	static char *Report();
 
-private:
+#ifdef KIWI_SLOW
+	static u64 TotalReserved;
+	static u64 TaggedReserved[MemTag_Count];
+	static u64 TotalCommitted;
+	static u64 TaggedCommitted[MemTag_Count];
+#endif
+
 	static u32 PageSize;
-	static u32 AllocationGranularity;
-	static u64 TotalAllocated;
-	static u64 TaggedAllocated[MemTag_Count];
+	static u32 AllocatorGranularity;
+};
+
+// TODO: Get an idea of how many syscalls we do per frame on average
+// and come up with an aggressive enough strategy for reserving & committing
+class KIWI_API MemArena
+{
+public:
+	void Allocate(u64 Size, u8 Tag);
+	void Free();
+
+	void *PushNoZero(u64 Size);
+	void *Push(u64 Size);
+	void Pop(u64 Size);
+	void Clear();
+
+private:
+	void *BasePtr = nullptr;
+	u64 ReservedMem = 0;
+	u64 CommittedMem = 0;
+	u64 OccupiedMem = 0;
+
+	u8 MemTag = MemTag_Unknown;
 };

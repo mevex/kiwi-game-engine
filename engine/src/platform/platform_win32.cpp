@@ -123,6 +123,7 @@ b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 
 char *Platform::GetLastErrorMessage()
 {
+	// TODO: This function is currently LEAKING MEMORY
 	u32 Error = GetLastError();
 
 	LPSTR ErrorMessage = 0;
@@ -167,6 +168,8 @@ char *Platform::GetMemoryAllocationInfo(void *Address)
 				 "Allocation info for Address 0x%llx\nBaseAddress=0x%llx, AllocationBase=0x%llx, RegionSize=%llu, State=%s, Protect=%s",
 				 (u64)Address, (u64)MemInfo.BaseAddress, (u64)MemInfo.AllocationBase, (u64)MemInfo.RegionSize, State, Protection);
 	}
+
+	// TODO: This function is currently LEAKING MEMORY
 	return _strdup(Buffer);
 }
 
