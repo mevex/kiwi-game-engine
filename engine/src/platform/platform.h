@@ -13,8 +13,10 @@ namespace Platform
 	void Terminate(PlatformState *PlatState);
 
 	b8 ProcessMessageQueue(PlatformState *PlatState);
+	char *GetLastErrorMessage();
 
 	void GetMemoryInfo(u32 &OutPageSize, u32 &OutAllocationGranularity);
+	char *GetMemoryAllocationInfo(void *Address);
 	void TranslateAllocSpecifiers(u32 MemAllocFlags, u32 &OutAllocType, u32 &OutProtectionType);
 	void *Allocate(void *Address, u64 Size, u32 MemAllocFlags);
 	void Free(void *Address, u64 Size, u8 MemDeallocFlag);

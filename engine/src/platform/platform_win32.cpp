@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define SCHEDULER_GRANULARITY 1
 
@@ -120,6 +121,18 @@ b8 Platform::ProcessMessageQueue(PlatformState *PlatState)
 	return true;
 }
 
+char *Platform::GetLastErrorMessage()
+{
+	u32 Error = GetLastError();
+
+	LPSTR ErrorMessage = 0;
+	FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+				   NULL, Error, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (LPSTR)&ErrorMessage,
+				   0, NULL);
+
+	return (char *)ErrorMessage;
+}
+
 void Platform::GetMemoryInfo(u32 &OutPageSize, u32 &OutAllocationGranularity)
 {
 	// Retrieve the system informations
@@ -129,6 +142,33 @@ void Platform::GetMemoryInfo(u32 &OutPageSize, u32 &OutAllocationGranularity)
 	OutPageSize = (u32)SystemInfo.dwPageSize;
 	OutAllocationGranularity = (u32)SystemInfo.dwAllocationGranularity;
 };
+
+char *Platform::GetMemoryAllocationInfo(void *Address)
+{
+	char Buffer[1000] = {};
+
+	MEMORY_BASIC_INFORMATION MemInfo;
+	if (VirtualQuery(Address, &MemInfo, sizeof(MemInfo)))
+	{
+		const char *States[3] = {
+			"MEM_COMMIT",
+			"MEM_FREE",
+			"MEM_RESERVE",
+		};
+		const char *Protections[2] = {
+			"PAGE_NOACCESS",
+			"PAGE_READWRITE",
+		};
+		const char *State = States[MemInfo.State == 0x1000 ? 0 : MemInfo.State == 0x10000 ? 1
+																						  : 2];
+		const char *Protection = Protections[MemInfo.Protect == 0x1 ? 0 : 1];
+
+		snprintf(Buffer, 1000,
+				 "Allocation info for Address 0x%llx\nBaseAddress=0x%llx, AllocationBase=0x%llx, RegionSize=%llu, State=%s, Protect=%s",
+				 (u64)Address, (u64)MemInfo.BaseAddress, (u64)MemInfo.AllocationBase, (u64)MemInfo.RegionSize, State, Protection);
+	}
+	return _strdup(Buffer);
+}
 
 void Platform::TranslateAllocSpecifiers(u32 MemAllocFlags, u32 &OutAllocType, u32 &OutProtectionType)
 {
