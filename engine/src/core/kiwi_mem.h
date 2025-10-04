@@ -6,8 +6,8 @@ enum MemTag
 {
 	// TODO: Some temp placeholders, with time we will populate this enum
 	MemTag_Unknown,
-	MemTag_Application,
 	MemTag_Game,
+	MemTag_Application,
 	MemTag_KArray,
 	MemTag_Renderer,
 	MemTag_String,
@@ -51,34 +51,6 @@ enum MemDealloc
 	MemDealloc_Release = 0x2,
 };
 
-// NOTE: this is a singleton
-class KIWI_API MemSystem
-{
-public:
-	static void Initialize();
-	static void Terminate();
-
-	static void *Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags);
-	static void *Allocate(u64 Size, u8 Tag,
-						  u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
-	static void Free(void *Address, u64 Size, u8 Tag,
-					 u8 MemDeallocFlag = MemDealloc_Release);
-	static void Set(void *Address, u64 Size, u32 Value);
-	static void Zero(void *Address, u64 Size);
-	static void Copy(void *Dest, void *Source, u64 Size);
-	static char *Report();
-
-#ifdef KIWI_SLOW
-	static u64 TotalReserved;
-	static u64 TaggedReserved[MemTag_Count];
-	static u64 TotalCommitted;
-	static u64 TaggedCommitted[MemTag_Count];
-#endif
-
-	static u32 PageSize;
-	static u32 AllocatorGranularity;
-};
-
 // TODO: Get an idea of how many syscalls we do per frame on average
 // and come up with an aggressive enough strategy for reserving & committing
 class KIWI_API MemArena
@@ -99,4 +71,36 @@ private:
 	u64 OccupiedMem = 0;
 
 	u8 MemTag = MemTag_Unknown;
+};
+
+// NOTE: this is a singleton
+class KIWI_API MemSystem
+{
+public:
+	static void Initialize();
+	static void Terminate();
+
+	static MemArena *GetArena(u8 Tag);
+
+	static void *Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags);
+	static void *Allocate(u64 Size, u8 Tag,
+						  u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
+	static void Free(void *Address, u64 Size, u8 Tag,
+					 u8 MemDeallocFlag = MemDealloc_Release);
+	static void Set(void *Address, u64 Size, u32 Value);
+	static void Zero(void *Address, u64 Size);
+	static void Copy(void *Dest, void *Source, u64 Size);
+	static char *Report();
+
+#ifdef KIWI_SLOW
+	static u64 TotalReserved;
+	static u64 TaggedReserved[MemTag_Count];
+	static u64 TotalCommitted;
+	static u64 TaggedCommitted[MemTag_Count];
+#endif
+
+	static u32 PageSize;
+	static u32 AllocatorGranularity;
+
+	static MemArena Arenas[MemTag_Count];
 };

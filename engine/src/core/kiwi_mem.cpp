@@ -6,14 +6,16 @@
 
 local_var const char *MemTagStrings[MemTag_Count] = {
 	"MemTag_Unknown",
-	"MemTag_Application",
 	"MemTag_Game",
+	"MemTag_Application",
 	"MemTag_Array",
 	"MemTag_String",
 };
 
 u32 MemSystem::PageSize = 0;
 u32 MemSystem::AllocatorGranularity = 0;
+MemArena MemSystem::Arenas[MemTag_Count] = {};
+
 #ifdef KIWI_SLOW
 u64 MemSystem::TotalReserved = 0;
 u64 MemSystem::TaggedReserved[MemTag_Count] = {};
@@ -24,11 +26,21 @@ u64 MemSystem::TaggedCommitted[MemTag_Count] = {};
 void MemSystem::Initialize()
 {
 	Platform::GetMemoryInfo(PageSize, AllocatorGranularity);
+
+	for (u8 Idx = 1; Idx < MemTag_Count; ++Idx)
+	{
+		Arenas[Idx].Allocate(1, Idx);
+	}
 }
 
 void MemSystem::Terminate()
 {
 	Report();
+}
+
+MemArena *MemSystem::GetArena(u8 Tag)
+{
+	return &Arenas[Tag];
 }
 
 SUPPRESS_WARNING(4100)
