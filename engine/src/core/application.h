@@ -4,6 +4,7 @@
 #include "platform/platform.h"
 
 struct Game;
+class MemArena;
 
 struct ApplicationConfig
 {
@@ -25,6 +26,7 @@ public:
 
 private:
 	static Application *Instance;
+	MemArena *Arena = nullptr;
 
 	Game *GameInstance;
 	b8 IsRunning = false;

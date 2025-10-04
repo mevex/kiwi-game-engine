@@ -26,7 +26,8 @@ b8 Application::Create(Game *GameInstance)
 	}
 	else
 	{
-		Application::Instance = (Application *)MemSystem::Allocate(sizeof(Application), MemTag_Application);
+		Application::Instance = (Application *)MemSystem::GetArena(MemTag_Application)->Push(sizeof(Application));
+		Application::Instance->Arena = MemSystem::GetArena(MemTag_Application);
 	}
 
 	Application::Instance->GameInstance = GameInstance;

@@ -4,6 +4,7 @@
 
 // NOTE: Forward declaration
 struct Game;
+class MemArena;
 
 #define INITIALIZE(name) b8 name(Game *GameInstance)
 typedef INITIALIZE(initialize);
@@ -25,6 +26,8 @@ struct Game
 	update *Update = nullptr;
 	render *Render = nullptr;
 	on_resize *OnResize = nullptr;
+
+	MemArena *Arena = nullptr;
 
 	// NOTE: Game state created and managed by the game
 	void *State;

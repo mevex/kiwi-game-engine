@@ -10,12 +10,14 @@ b8 CreateGame(Game *OutGame)
 	OutGame->AppConfig.Width = 1280;
 	OutGame->AppConfig.Height = 720;
 
+	OutGame->Arena = MemSystem::GetArena(MemTag_Game);
+
 	OutGame->Initialize = GameInitialize;
 	OutGame->Update = GameUpdate;
 	OutGame->Render = GameRender;
 	OutGame->OnResize = GameOnResize;
 
-	OutGame->State = MemSystem::Allocate(sizeof(GameState), MemTag_Game);
+	OutGame->State = OutGame->Arena->Push(sizeof(GameState));
 
 	return true;
 }
