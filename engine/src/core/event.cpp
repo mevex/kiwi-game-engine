@@ -14,17 +14,23 @@ b8 EventSystem::Initialize()
 		return false;
 	}
 
-	MemSystem::Zero(Registered, MAX_MESSAGE_CODES * sizeof(EventCodeEntry));
+	for (u16 Index = 0; Index < MAX_MESSAGE_CODES; ++Index)
+	{
+		Registered[Index].Events.Create(MemTag_EventSystem);
+	}
 	IsInitialized = true;
 	return true;
 }
 
 b8 EventSystem::Terminate()
 {
+	// TODO: Do we actually need to deinitialize this?
 	for (u16 Index = 0; Index < MAX_MESSAGE_CODES; ++Index)
 	{
-		if (Registered[Index].Events.Length)
+		if (Registered[Index].Events.FirstNode || Registered[Index].Events.FreeNode)
 		{
+			// TODO: This is theoretically wrong since we are not necesarily freeing from
+			// the correct linked lists. I.E. LLA frees into LLB space and vice versa.
 			Registered[Index].Events.Destroy();
 		}
 	}
@@ -40,11 +46,11 @@ b8 EventSystem::Register(u16 Code, void *Listener, on_event OnEvent)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
+	KLinkedList<RegisteredEvent> *Events = &Registered[Code].Events;
 
-	for (u64 Index = 0; Index < Events->Length; ++Index)
+	for (KLinkedList<RegisteredEvent>::Node *Node = Events->FirstNode; Node; Node = Node->Next)
 	{
-		if ((*Events)[Index].Listener == Listener)
+		if (Node->Element.Listener == Listener)
 		{
 			LogWarning("Listener arleady registered to code %d", Code);
 			return false;
@@ -54,7 +60,7 @@ b8 EventSystem::Register(u16 Code, void *Listener, on_event OnEvent)
 	RegisteredEvent Event;
 	Event.Listener = Listener;
 	Event.Callback = OnEvent;
-	Events->Push(Event);
+	Events->Add(Event);
 
 	return true;
 }
@@ -67,14 +73,13 @@ b8 EventSystem::Unregister(u16 Code, void *Listener, on_event OnEvent)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
+	KLinkedList<RegisteredEvent> *Events = &Registered[Code].Events;
 
-	for (u64 Index = 0; Index < Events->Length; ++Index)
+	for (KLinkedList<RegisteredEvent>::Node *Node = Events->FirstNode; Node; Node = Node->Next)
 	{
-		RegisteredEvent Event = (*Events)[Index];
-		if (Event.Listener == Listener && Event.Callback == OnEvent)
+		if (Node->Element.Listener == Listener && Node->Element.Callback == OnEvent)
 		{
-			Events->RemoveAt(Index);
+			Events->Remove(Node);
 			return true;
 		}
 	}
@@ -92,12 +97,11 @@ b8 EventSystem::Fire(u16 Code, void *Sender, EventContext Context)
 		return false;
 	}
 
-	KArray<RegisteredEvent> *Events = &Registered[Code].Events;
+	KLinkedList<RegisteredEvent> *Events = &Registered[Code].Events;
 
-	for (u64 Index = 0; Index < Events->Length; ++Index)
+	for (KLinkedList<RegisteredEvent>::Node *Node = Events->FirstNode; Node; Node = Node->Next)
 	{
-		RegisteredEvent Event = (*Events)[Index];
-		if (Event.Callback(Code, Sender, Event.Listener, Context))
+		if (Node->Element.Callback(Code, Sender, Node->Element.Listener, Context))
 		{
 			// NOTE: if we enter here it means that the event has been handled
 			// and there is no need to send it to someone else

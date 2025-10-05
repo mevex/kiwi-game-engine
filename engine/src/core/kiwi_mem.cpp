@@ -8,6 +8,7 @@ local_var const char *MemTagStrings[MemTag_Count] = {
 	"MemTag_Unknown",
 	"MemTag_Game",
 	"MemTag_Application",
+	"MemTag_EventSystem",
 	"MemTag_Array",
 	"MemTag_String",
 };
@@ -29,6 +30,8 @@ void MemSystem::Initialize()
 
 	for (u8 Idx = 1; Idx < MemTag_Count; ++Idx)
 	{
+		// NOTE: by allocating 1 byte in the arena we automatically
+		// 16 pages and commit one
 		Arenas[Idx].Allocate(1, Idx);
 	}
 }

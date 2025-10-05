@@ -1,7 +1,7 @@
 #pragma once
 
 #include "defines.h"
-#include "containers/karray.h"
+#include "containers/klinked_list.h"
 
 struct EventContext
 {
@@ -82,7 +82,7 @@ struct RegisteredEvent
 
 struct EventCodeEntry
 {
-	KArray<RegisteredEvent> Events;
+	KLinkedList<RegisteredEvent> Events;
 };
 
 #define MAX_MESSAGE_CODES 4096

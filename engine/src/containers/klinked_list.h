@@ -79,7 +79,7 @@ public:
 		return &NewNode->Element;
 	}
 
-	void Remove(T *Element)
+	void Remove(Node *Element)
 	{
 		Node *ElementToRemove = FirstNode;
 		Node *PreviousNode = nullptr;
