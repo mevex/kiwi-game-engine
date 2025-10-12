@@ -2,6 +2,7 @@
 
 #include "renderer_types.h"
 
+class MemArena;
 struct PlatformState;
 
 class RendererBackend
@@ -24,6 +25,9 @@ public:
 
 	RendererBackendType Type;
 
+	MemArena *Arena = nullptr;
+
 	PlatformState *PlatState;
+
 	u64 FrameCount;
 };
