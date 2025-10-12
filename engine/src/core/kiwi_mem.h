@@ -9,6 +9,7 @@ enum MemTag
 	MemTag_Game,
 	MemTag_Application,
 	MemTag_EventSystem,
+	MemTag_Scratch,
 	MemTag_KArray,
 	MemTag_Renderer,
 	MemTag_String,
@@ -63,15 +64,25 @@ public:
 	void *PushNoZero(u64 Size);
 	void *Push(u64 Size);
 	void Pop(u64 Size);
+	void PopAt(u64 MemoryLeft);
 	void Clear();
 
-private:
 	void *BasePtr = nullptr;
 	u64 ReservedMem = 0;
 	u64 CommittedMem = 0;
 	u64 OccupiedMem = 0;
 
 	u8 MemTag = MemTag_Unknown;
+};
+
+class KIWI_API AutoFreeArena
+{
+	AutoFreeArena();
+	AutoFreeArena(u8 Tag);
+	~AutoFreeArena();
+
+	MemArena *Arena = nullptr;
+	u64 StartingMemory = 0;
 };
 
 // NOTE: this is a singleton

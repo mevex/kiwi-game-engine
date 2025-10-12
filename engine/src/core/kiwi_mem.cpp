@@ -238,8 +238,33 @@ void MemArena::Pop(u64 Size)
 	OccupiedMem -= Size;
 }
 
+void MemArena::PopAt(u64 MemoryLeft)
+{
+	// TODO: Do we want to decommit the pages at some point
+	OccupiedMem = MemoryLeft;
+}
+
 void MemArena::Clear()
 {
 	// TODO: Do we want to decommit the pages at some point
 	OccupiedMem = 0;
+}
+
+// AUTO FREE ARENA
+
+AutoFreeArena::AutoFreeArena()
+{
+	Arena = MemSystem::GetArena(MemTag_Scratch);
+	StartingMemory = Arena->OccupiedMem;
+}
+
+AutoFreeArena::AutoFreeArena(u8 Tag)
+{
+	Arena = MemSystem::GetArena(Tag);
+	StartingMemory = Arena->OccupiedMem;
+}
+
+AutoFreeArena::~AutoFreeArena()
+{
+	Arena->PopAt(StartingMemory);
 }
