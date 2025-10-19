@@ -17,6 +17,11 @@ many many times.
 #define KARRAY_RESIZE_FACTOR 2
 #define KARRAY_DEFAULT_INIT_CAPACITY 4
 
+// TODO: This variable is for monitoring how many times I actually need
+// to resize the arrays "naturally". This will determine how and if the
+// array implementation will be modified.
+static u64 ResizeCount = 0;
+
 // TODO: Do we need shrinking?
 template <typename T>
 class KIWI_API KArray
@@ -60,6 +65,8 @@ public:
 
 		Capacity = NewSize;
 		Elements = (T *)NewBlock;
+
+		++ResizeCount;
 	}
 
 	void Clear()

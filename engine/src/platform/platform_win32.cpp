@@ -262,7 +262,6 @@ void *Platform::Allocate(void *Address, u64 Size, u32 MemAllocFlags)
 	u32 ProtectionType = 0;
 	TranslateAllocSpecifiers(MemAllocFlags, AllocationType, ProtectionType);
 
-	LogTrace("Alloc with size %d", Size);
 	return VirtualAlloc(Address, Size, AllocationType, ProtectionType);
 }
 

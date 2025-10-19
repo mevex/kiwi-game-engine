@@ -64,6 +64,8 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		Info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		Info.queueFamilyIndex = Indices[Idx];
 		Info.queueCount = 1;
+		// TODO: we assume there are at least 2 graphics queue in this family.
+		// Actually check.
 		if (Indices[Idx] == Device.GraphicsIndex)
 		{
 			Info.queueCount = 2;
@@ -140,6 +142,11 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 		VkPhysicalDeviceFeatures Features;
 		VkPhysicalDeviceMemoryProperties MemoryProperties;
 
+		// TODO: These are deprecated. Port them to the 2nd implementation
+		// vkGetPhysicalDeviceProperties2(Device, &Properties);
+		// vkGetPhysicalDeviceFeatures2(Device, &Features);
+		// vkGetPhysicalDeviceMemoryProperties2(Device, &MemoryProperties);
+
 		vkGetPhysicalDeviceProperties(Device, &Properties);
 		vkGetPhysicalDeviceFeatures(Device, &Features);
 		vkGetPhysicalDeviceMemoryProperties(Device, &MemoryProperties);
@@ -169,6 +176,8 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 		}
 
 		// Check the queues
+		// TODO: This are deprecated. Port it to the 2nd implementation
+		// vkGetPhysicalDeviceQueueFamilyProperties2(Device, &QueueFamilyCount, nullptr);
 		u32 QueueFamilyCount = 0;
 		KArray<VkQueueFamilyProperties> FamilyProperties;
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, nullptr);

@@ -84,6 +84,11 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	VK_CHECK(vkCreateInstance(&InstanceCreateInfo, Context.Allocator, &Context.Instance));
 	LogInfo("Vulkan Instance created");
 
+	u32 InstanceVersion;
+	VK_CHECK(vkEnumerateInstanceVersion(&InstanceVersion));
+	LogInfo("Instance Version: %d.%d.%d", VK_API_VERSION_MAJOR(InstanceVersion),
+			VK_API_VERSION_MINOR(InstanceVersion), VK_API_VERSION_PATCH(InstanceVersion));
+
 #ifdef KIWI_SLOW
 	LogDebug("--- Creating Vulkan Debugger");
 
