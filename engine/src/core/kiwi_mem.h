@@ -4,7 +4,7 @@
 
 enum MemTag
 {
-	// TODO: Some temp placeholders, with time we will populate this enum
+	// TODO: With time we will populate this enum
 	MemTag_Unknown,
 	MemTag_Game,
 	MemTag_Application,
@@ -77,12 +77,12 @@ public:
 
 class KIWI_API AutoFreeArena
 {
-	AutoFreeArena();
-	AutoFreeArena(u8 Tag);
-	~AutoFreeArena();
+public:
+	inline AutoFreeArena(u8 Tag);
+	inline ~AutoFreeArena();
 
-	MemArena *Arena = nullptr;
-	u64 StartingMemory = 0;
+	MemArena *Arena;
+	u64 StartingMemory;
 };
 
 // NOTE: this is a singleton

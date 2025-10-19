@@ -9,7 +9,9 @@ local_var const char *MemTagStrings[MemTag_Count] = {
 	"MemTag_Game",
 	"MemTag_Application",
 	"MemTag_EventSystem",
-	"MemTag_Array",
+	"MemTag_Scratch",
+	"MemTag_KArray",
+	"MemTag_Renderer",
 	"MemTag_String",
 };
 
@@ -49,6 +51,7 @@ MemArena *MemSystem::GetArena(u8 Tag)
 SUPPRESS_WARNING(4100)
 void *MemSystem::Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags)
 {
+	KDebugBreak();
 	return nullptr;
 }
 
@@ -60,6 +63,7 @@ void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
 SUPPRESS_WARNING(4100)
 void MemSystem::Free(void *Address, u64 Size, u8 Tag, u8 MemDeallocFlag)
 {
+	KDebugBreak();
 }
 
 void MemSystem::Set(void *Address, u64 Size, u32 Value)
@@ -251,12 +255,6 @@ void MemArena::Clear()
 }
 
 // AUTO FREE ARENA
-
-AutoFreeArena::AutoFreeArena()
-{
-	Arena = MemSystem::GetArena(MemTag_Scratch);
-	StartingMemory = Arena->OccupiedMem;
-}
 
 AutoFreeArena::AutoFreeArena(u8 Tag)
 {

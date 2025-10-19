@@ -10,6 +10,23 @@ an architectural perspective—even if it means rewriting it
 many many times.
 */
 
+/*
+NOTE: TODO: Since we moved to the arena memory management
+i couldn't find a simple way to integrate it into the KArray.
+This could be a hint that maybe the variable length data structure
+with the classic implementation simply isn't a necessary/good
+data structure in most cases and I should just avoid it.
+Or maybe we could accept its incoveniences and design a specific
+allocator (and deallocator) for it.
+
+For now we never free the memory and let the used take care of this.
+This is because freeing could cause bugs in cases when
+array A is created and populated, then the same happens with array B.
+At this point if we free array A, we are actually freeing from B
+and maybe overriding its memory. The correct way of freeing
+is in reverse creation order.
+*/
+
 #include "defines.h"
 #include "core/kiwi_mem.h"
 #include "core/logger.h"
@@ -17,9 +34,11 @@ many many times.
 #define KARRAY_RESIZE_FACTOR 2
 #define KARRAY_DEFAULT_INIT_CAPACITY 4
 
-// TODO: This variable is for monitoring how many times I actually need
-// to resize the arrays "naturally". This will determine how and if the
-// array implementation will be modified.
+/*
+TODO: Given the note above, this variable is for monitoring
+how many times the arrays "naturally" resize.
+This will determine how and if the array implementation will be modified.
+*/
 static u64 ResizeCount = 0;
 
 // TODO: Do we need shrinking?
@@ -27,9 +46,11 @@ template <typename T>
 class KIWI_API KArray
 {
 public:
-	// NOTE: I want to manually controll the creation destruction of the elements
-	void Create(u64 InitialCapacity = KARRAY_DEFAULT_INIT_CAPACITY, u64 InitialLength = 0)
+	// NOTE: I want to manually controll the creation/destruction of the elements
+	void Create(MemArena *InArena = nullptr, u64 InitialCapacity = KARRAY_DEFAULT_INIT_CAPACITY, u64 InitialLength = 0)
 	{
+		Arena = InArena ? InArena : MemSystem::GetArena(MemTag_KArray);
+
 		if (Capacity > 0)
 		{
 			KDebugBreak();
@@ -39,12 +60,13 @@ public:
 		Length = InitialLength;
 		Capacity = InitialCapacity;
 		Stride = sizeof(T);
-		Elements = (T *)MemSystem::Allocate(Capacity * Stride, MemTag_KArray);
+		Elements = (T *)Arena->PushNoZero(Capacity * Stride);
 	}
 
 	void Destroy()
 	{
-		MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
+		// NOTE: Whoever calls this method knows that it frees the arena as well
+		Arena->Pop(Capacity * Stride);
 		Length = 0;
 		Capacity = 0;
 		Stride = 0;
@@ -59,9 +81,9 @@ public:
 			LogWarning("Trying to resize the array to a smaller (or equal) value than the actual length.");
 		}
 
-		void *NewBlock = MemSystem::Allocate(NewSize * Stride, MemTag_KArray);
+		void *NewBlock = Arena->PushNoZero(NewSize * Stride);
 		MemSystem::Copy(NewBlock, Elements, Length * Stride);
-		MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
+		// MemSystem::Free(Elements, Capacity * Stride, MemTag_KArray);
 
 		Capacity = NewSize;
 		Elements = (T *)NewBlock;
@@ -168,6 +190,8 @@ public:
 
 		return Elements + Index;
 	}
+
+	MemArena *Arena;
 
 	// NOTE: I want these values to be public fo easy access.
 	// Anyone who messes with them better be really sure about
