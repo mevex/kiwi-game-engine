@@ -10,9 +10,9 @@ struct VulkanSwapchainSupport
 {
 	VkSurfaceCapabilitiesKHR Capabilities;
 	u32 FormatCount;
-	KArray<VkSurfaceFormatKHR> Formats;
+	VkSurfaceFormatKHR *Formats;
 	u32 PresentModeCount;
-	KArray<VkPresentModeKHR> PresentModes;
+	VkPresentModeKHR *PresentModes;
 };
 
 struct VulkanDevice

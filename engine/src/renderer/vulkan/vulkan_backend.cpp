@@ -12,6 +12,8 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	// TODO: Custom allocator
 	Context.Allocator = nullptr;
 
+	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
+
 	// Setup Vulkan instance
 	VkApplicationInfo AppInfo = {};
 	AppInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -23,6 +25,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 	// Obtain the list of required extensions
 	KArray<const char *> Extensions;
+	Extensions.Create(ScratchArenaHandle.Arena);
 	Extensions.Push(VK_KHR_SURFACE_EXTENSION_NAME); // generic surface ext
 	VulkanPlatform::GetExtensions(Extensions);		// platform-specific extension(s)
 #ifdef KIWI_SLOW
@@ -38,6 +41,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 	// Obtain the list of required validation layers
 	KArray<const char *> RequiredLayers;
+	RequiredLayers.Create(ScratchArenaHandle.Arena);
 #ifdef KIWI_SLOW
 	LogDebug("--- Vulkan validation layers enabled. Enumerating...");
 
@@ -46,7 +50,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	KArray<VkLayerProperties> AvailableLayers;
 	u32 AvailableLayersCount = 0;
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, 0));
-	AvailableLayers.Create(AvailableLayersCount, AvailableLayersCount);
+	AvailableLayers.Create(ScratchArenaHandle.Arena, AvailableLayersCount, AvailableLayersCount);
 	VK_CHECK(vkEnumerateInstanceLayerProperties(&AvailableLayersCount, AvailableLayers.Elements));
 
 	for (u32 RequiredIndex = 0; RequiredIndex < RequiredLayers.Length; ++RequiredIndex)
@@ -123,7 +127,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 		return false;
 	}
 
-	if (!VulkanDeviceCreate(&Context))
+	if (!VulkanDeviceCreate(&Context, Arena))
 	{
 		LogFatal("Could not create Vulkan device");
 		return false;
@@ -136,7 +140,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 void VulkanRenderer::Terminate()
 {
 	LogDebug("Destroying Vulkan device");
-	VulkanDeviceDestroy(&Context);
+	VulkanDeviceDestroy(&Context, Arena);
 
 	LogDebug("Destroying Vulkan surface");
 	if (Context.Surface)

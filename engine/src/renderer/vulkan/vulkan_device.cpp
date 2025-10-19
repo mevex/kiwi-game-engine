@@ -2,6 +2,7 @@
 #include "core/logger.h"
 #include "containers/karray.h"
 #include "core/kiwi_string.h"
+#include "core/kiwi_mem.h"
 
 struct PhysicalDeviceRequirements
 {
@@ -13,7 +14,7 @@ struct PhysicalDeviceRequirements
 
 	b8 SamplerAnisotropy;
 	b8 DiscreteGPU;
-	KArray<const char *> ExtentionNames;
+	KArray<const char *> ExtensionNames;
 };
 
 struct PhysicalDeviceQueueFamilyInfo
@@ -24,9 +25,11 @@ struct PhysicalDeviceQueueFamilyInfo
 	u32 ComputeIndex;
 };
 
-b8 VulkanDeviceCreate(VulkanContext *Context)
+b8 VulkanDeviceCreate(VulkanContext *Context, MemArena *RendererArena)
 {
-	if (!SelectPhysicalDevice(Context))
+	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
+
+	if (!SelectPhysicalDevice(Context, RendererArena))
 	{
 		return false;
 	}
@@ -35,22 +38,23 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	// NOTE: Don't create additional queues for shared indices
 	VulkanDevice &Device = Context->Device;
 	KArray<u32> Indices;
+	Indices.Create(ScratchArenaHandle.Arena);
 	Indices.Push(Device.GraphicsIndex);
-	if (!(Device.GraphicsIndex == Device.PresentIndex))
+	if (Device.GraphicsIndex != Device.PresentIndex)
 	{
 		Indices.Push(Device.PresentIndex);
 	}
-	if (!(Device.GraphicsIndex == Device.TransferIndex))
+	if (Device.GraphicsIndex != Device.TransferIndex)
 	{
 		Indices.Push(Device.TransferIndex);
 	}
-	if (!(Device.GraphicsIndex == Device.ComputeIndex))
+	if (Device.GraphicsIndex != Device.ComputeIndex)
 	{
 		Indices.Push(Device.ComputeIndex);
 	}
 
 	KArray<VkDeviceQueueCreateInfo> QueueCreateInfos;
-	QueueCreateInfos.Create(Indices.Length, Indices.Length);
+	QueueCreateInfos.Create(ScratchArenaHandle.Arena, Indices.Length, Indices.Length);
 
 	// NOTE: Since we know that we will create maximum 2 queues (graphics queues)
 	// we need an array with 2 values, one for each queue, to pass to the
@@ -107,8 +111,10 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	return true;
 }
 
-b8 SelectPhysicalDevice(VulkanContext *Context)
+b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
 {
+	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
+
 	LogInfo("Selecting physical device");
 	// Querying for the appropriate physical device
 	u32 PhysicalDeviceCount = 0;
@@ -120,7 +126,7 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 	}
 
 	KArray<VkPhysicalDevice> PhysicalDevices;
-	PhysicalDevices.Create(PhysicalDeviceCount, PhysicalDeviceCount);
+	PhysicalDevices.Create(ScratchArenaHandle.Arena, PhysicalDeviceCount, PhysicalDeviceCount);
 	VK_CHECK(vkEnumeratePhysicalDevices(Context->Instance, &PhysicalDeviceCount,
 										PhysicalDevices.Elements));
 
@@ -132,7 +138,8 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 	Requirements.Compute = true;
 	Requirements.SamplerAnisotropy = true;
 	Requirements.DiscreteGPU = true;
-	Requirements.ExtentionNames.Push(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	Requirements.ExtensionNames.Create(ScratchArenaHandle.Arena);
+	Requirements.ExtensionNames.Push(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 	for (u32 Index = 0; Index < PhysicalDevices.Length; ++Index)
 	{
@@ -181,7 +188,7 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 		u32 QueueFamilyCount = 0;
 		KArray<VkQueueFamilyProperties> FamilyProperties;
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, nullptr);
-		FamilyProperties.Create(QueueFamilyCount, QueueFamilyCount);
+		FamilyProperties.Create(ScratchArenaHandle.Arena, QueueFamilyCount, QueueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, FamilyProperties.Elements);
 
 		u8 MinTransferScore = 255;
@@ -225,11 +232,8 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 			}
 		}
 
-		// TODO: Use scratch space instead
-		FamilyProperties.Destroy();
-
 		LogInfo("Graphics | Present | Transfer | Compute | Name");
-		LogInfo("       %d |       %d |       %d  |       %d | %s",
+		LogInfo("       %d |       %d |        %d |       %d | %s",
 				QueueInfo.GraphicsIndex, QueueInfo.PresentIndex,
 				QueueInfo.TransferIndex, QueueInfo.ComputeIndex, Properties.deviceName);
 
@@ -239,37 +243,32 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 			(!Requirements.Transfer || (Requirements.Transfer && QueueInfo.TransferIndex != (u32)-1)) &&
 			(!Requirements.Compute || (Requirements.Compute && QueueInfo.ComputeIndex != (u32)-1)))
 		{
-			VulkanDeviceQuerySwapchainSupport(Device, Context->Surface, SwapchainSupport);
-
-			if (SwapchainSupport.FormatCount < 1 || SwapchainSupport.PresentModeCount < 1)
+			if (!VulkanDeviceQuerySwapchainSupport(Device, Context->Surface, RendererArena, SwapchainSupport))
 			{
-				SwapchainSupport.Formats.Destroy();
-				SwapchainSupport.PresentModes.Destroy();
-
 				LogInfo("Required swapchain support not present on device %d. Skipping.");
 				continue;
 			}
 		}
 
 		// Device extensions
-		if (Requirements.ExtentionNames.Length)
+		if (Requirements.ExtensionNames.Length)
 		{
 			u32 AvailableExtensionsCount = 0;
 			KArray<VkExtensionProperties> ExtensionProperties;
 			VK_CHECK(vkEnumerateDeviceExtensionProperties(Device, 0, &AvailableExtensionsCount, 0));
 			if (AvailableExtensionsCount != 0)
 			{
-				ExtensionProperties.Create(AvailableExtensionsCount, AvailableExtensionsCount);
+				ExtensionProperties.Create(ScratchArenaHandle.Arena, AvailableExtensionsCount, AvailableExtensionsCount);
 				VK_CHECK(vkEnumerateDeviceExtensionProperties(Device, 0, &AvailableExtensionsCount,
 															  ExtensionProperties.Elements));
 
 				b8 Found = true;
-				for (u32 ReqIdx = 0; ReqIdx < Requirements.ExtentionNames.Length && Found; ++ReqIdx)
+				for (u32 ReqIdx = 0; ReqIdx < Requirements.ExtensionNames.Length && Found; ++ReqIdx)
 				{
 					Found = false;
 					for (u32 AvIdx = 0; AvIdx < ExtensionProperties.Length; ++AvIdx)
 					{
-						if (KStr::Equal(Requirements.ExtentionNames[ReqIdx],
+						if (KStr::Equal(Requirements.ExtensionNames[ReqIdx],
 										ExtensionProperties[AvIdx].extensionName))
 						{
 							Found = true;
@@ -280,7 +279,7 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 					if (!Found)
 					{
 						LogInfo("Could not find extension %s. Skipping.",
-								Requirements.ExtentionNames[ReqIdx]);
+								Requirements.ExtensionNames[ReqIdx]);
 						break;
 					}
 				}
@@ -290,9 +289,6 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 					continue;
 				}
 			}
-
-			// TODO: Use scratch space instead
-			ExtensionProperties.Destroy();
 		}
 
 		if (Requirements.SamplerAnisotropy && !Features.samplerAnisotropy)
@@ -372,15 +368,12 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 		return true;
 	}
 
-	// TODO: Use scratch space instead
-	PhysicalDevices.Destroy();
-
 	LogError("No physical device that meets the requirement found");
 	return false;
 }
 
-void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface,
-									   VulkanSwapchainSupport &OutSwapchainSupport)
+b8 VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface,
+									 MemArena *Arena, VulkanSwapchainSupport &OutSwapchainSupport)
 {
 	// Surface capabilities
 	VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(PhysicalDevice, Surface,
@@ -391,11 +384,14 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 												  &OutSwapchainSupport.FormatCount, nullptr));
 	if (OutSwapchainSupport.FormatCount != 0)
 	{
-		OutSwapchainSupport.Formats.Create(OutSwapchainSupport.FormatCount,
-										   OutSwapchainSupport.FormatCount);
-		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface,
-													  &OutSwapchainSupport.FormatCount,
-													  OutSwapchainSupport.Formats.Elements));
+		OutSwapchainSupport.Formats =
+			(VkSurfaceFormatKHR *)Arena->PushNoZero(OutSwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
+		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &OutSwapchainSupport.FormatCount,
+													  OutSwapchainSupport.Formats));
+	}
+	else
+	{
+		return false;
 	}
 
 	// Present modes
@@ -403,15 +399,21 @@ void VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfac
 													   &OutSwapchainSupport.PresentModeCount, nullptr));
 	if (OutSwapchainSupport.PresentModeCount != 0)
 	{
-		OutSwapchainSupport.PresentModes.Create(OutSwapchainSupport.PresentModeCount,
-												OutSwapchainSupport.PresentModeCount);
-		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface,
-														   &OutSwapchainSupport.PresentModeCount,
-														   OutSwapchainSupport.PresentModes.Elements));
+		OutSwapchainSupport.PresentModes =
+			(VkPresentModeKHR *)Arena->PushNoZero(OutSwapchainSupport.PresentModeCount * sizeof(VkPresentModeKHR));
+		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &OutSwapchainSupport.PresentModeCount,
+														   OutSwapchainSupport.PresentModes));
 	}
+	else
+	{
+		Arena->Pop(OutSwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
+		return false;
+	}
+
+	return true;
 }
 
-void VulkanDeviceDestroy(VulkanContext *Context)
+void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena)
 {
 	LogInfo("Destroying logical device");
 	if (Context->Device.LogicalDevice)
@@ -433,17 +435,18 @@ void VulkanDeviceDestroy(VulkanContext *Context)
 
 	if (Context->Device.SwapchainSupport.FormatCount)
 	{
+		RendererArena->Pop(Context->Device.SwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
 		Context->Device.SwapchainSupport.FormatCount = 0;
-		Context->Device.SwapchainSupport.Formats.Destroy();
+		Context->Device.SwapchainSupport.Formats = nullptr;
 	}
 	if (Context->Device.SwapchainSupport.PresentModeCount)
 	{
+		RendererArena->Pop(Context->Device.SwapchainSupport.PresentModeCount * sizeof(VkPresentModeKHR));
 		Context->Device.SwapchainSupport.PresentModeCount = 0;
-		Context->Device.SwapchainSupport.PresentModes.Destroy();
+		Context->Device.SwapchainSupport.PresentModes = nullptr;
 	}
 
-	MemSystem::Zero(&Context->Device.SwapchainSupport.Capabilities,
-					sizeof(Context->Device.SwapchainSupport.Capabilities));
+	MemSystem::Zero(&Context->Device.SwapchainSupport.Capabilities, sizeof(VkSurfaceCapabilitiesKHR));
 
 	Context->Device.GraphicsIndex = (u32)(-1);
 	Context->Device.PresentIndex = (u32)(-1);
