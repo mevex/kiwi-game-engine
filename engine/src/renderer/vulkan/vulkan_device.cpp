@@ -237,19 +237,6 @@ b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
 				QueueInfo.GraphicsIndex, QueueInfo.PresentIndex,
 				QueueInfo.TransferIndex, QueueInfo.ComputeIndex, Properties.deviceName);
 
-		VulkanSwapchainSupport SwapchainSupport = {};
-		if ((!Requirements.Graphics || (Requirements.Graphics && QueueInfo.GraphicsIndex != (u32)-1)) &&
-			(!Requirements.Present || (Requirements.Present && QueueInfo.PresentIndex != (u32)-1)) &&
-			(!Requirements.Transfer || (Requirements.Transfer && QueueInfo.TransferIndex != (u32)-1)) &&
-			(!Requirements.Compute || (Requirements.Compute && QueueInfo.ComputeIndex != (u32)-1)))
-		{
-			if (!VulkanDeviceQuerySwapchainSupport(Device, Context->Surface, RendererArena, SwapchainSupport))
-			{
-				LogInfo("Required swapchain support not present on device %d. Skipping.");
-				continue;
-			}
-		}
-
 		// Device extensions
 		if (Requirements.ExtensionNames.Length)
 		{
@@ -299,7 +286,6 @@ b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
 
 		// Device meets all the requirements
 		Context->Device.PhysicalDevice = Device;
-		Context->Device.SwapchainSupport = SwapchainSupport;
 
 		Context->Device.GraphicsIndex = QueueInfo.GraphicsIndex;
 		Context->Device.PresentIndex = QueueInfo.PresentIndex;
@@ -372,47 +358,6 @@ b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
 	return false;
 }
 
-b8 VulkanDeviceQuerySwapchainSupport(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface,
-									 MemArena *Arena, VulkanSwapchainSupport &OutSwapchainSupport)
-{
-	// Surface capabilities
-	VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(PhysicalDevice, Surface,
-													   &OutSwapchainSupport.Capabilities));
-
-	// Surface formats
-	VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface,
-												  &OutSwapchainSupport.FormatCount, nullptr));
-	if (OutSwapchainSupport.FormatCount != 0)
-	{
-		OutSwapchainSupport.Formats =
-			(VkSurfaceFormatKHR *)Arena->PushNoZero(OutSwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
-		VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &OutSwapchainSupport.FormatCount,
-													  OutSwapchainSupport.Formats));
-	}
-	else
-	{
-		return false;
-	}
-
-	// Present modes
-	VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface,
-													   &OutSwapchainSupport.PresentModeCount, nullptr));
-	if (OutSwapchainSupport.PresentModeCount != 0)
-	{
-		OutSwapchainSupport.PresentModes =
-			(VkPresentModeKHR *)Arena->PushNoZero(OutSwapchainSupport.PresentModeCount * sizeof(VkPresentModeKHR));
-		VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &OutSwapchainSupport.PresentModeCount,
-														   OutSwapchainSupport.PresentModes));
-	}
-	else
-	{
-		Arena->Pop(OutSwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
-		return false;
-	}
-
-	return true;
-}
-
 void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena)
 {
 	LogInfo("Destroying logical device");
@@ -432,21 +377,6 @@ void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena)
 	// but we can release all the resources that we obtained during creation
 	LogInfo("Releasing physical device resources");
 	Context->Device.PhysicalDevice = 0;
-
-	if (Context->Device.SwapchainSupport.FormatCount)
-	{
-		RendererArena->Pop(Context->Device.SwapchainSupport.FormatCount * sizeof(VkSurfaceFormatKHR));
-		Context->Device.SwapchainSupport.FormatCount = 0;
-		Context->Device.SwapchainSupport.Formats = nullptr;
-	}
-	if (Context->Device.SwapchainSupport.PresentModeCount)
-	{
-		RendererArena->Pop(Context->Device.SwapchainSupport.PresentModeCount * sizeof(VkPresentModeKHR));
-		Context->Device.SwapchainSupport.PresentModeCount = 0;
-		Context->Device.SwapchainSupport.PresentModes = nullptr;
-	}
-
-	MemSystem::Zero(&Context->Device.SwapchainSupport.Capabilities, sizeof(VkSurfaceCapabilitiesKHR));
 
 	Context->Device.GraphicsIndex = (u32)(-1);
 	Context->Device.PresentIndex = (u32)(-1);

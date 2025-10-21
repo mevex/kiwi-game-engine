@@ -6,20 +6,10 @@
 
 #define VK_CHECK(Expression) Assert((Expression) == VK_SUCCESS)
 
-struct VulkanSwapchainSupport
-{
-	VkSurfaceCapabilitiesKHR Capabilities;
-	u32 FormatCount;
-	VkSurfaceFormatKHR *Formats;
-	u32 PresentModeCount;
-	VkPresentModeKHR *PresentModes;
-};
-
 struct VulkanDevice
 {
 	VkPhysicalDevice PhysicalDevice;
 	VkDevice LogicalDevice;
-	VulkanSwapchainSupport SwapchainSupport;
 
 	u32 GraphicsIndex;
 	u32 PresentIndex;
