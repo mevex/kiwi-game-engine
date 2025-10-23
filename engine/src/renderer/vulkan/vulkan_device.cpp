@@ -90,6 +90,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context, MemArena *RendererArena)
 	DeviceCreateInfo.queueCreateInfoCount = (u32)QueueCreateInfos.Length;
 	DeviceCreateInfo.pQueueCreateInfos = QueueCreateInfos.Elements;
 	DeviceCreateInfo.pEnabledFeatures = &DeviceFeatures;
+	DeviceCreateInfo.enabledExtensionCount = 1;
 	DeviceCreateInfo.ppEnabledExtensionNames = &ExtensionName;
 	// Those are deprecated
 	// DeviceCreateInfo.enabledLayerCount = 0;
