@@ -25,11 +25,11 @@ struct PhysicalDeviceQueueFamilyInfo
 	u32 ComputeIndex;
 };
 
-b8 VulkanDeviceCreate(VulkanContext *Context, MemArena *RendererArena)
+b8 VulkanDeviceCreate(VulkanContext *Context)
 {
 	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
 
-	if (!SelectPhysicalDevice(Context, RendererArena))
+	if (!SelectPhysicalDevice(Context))
 	{
 		return false;
 	}
@@ -112,7 +112,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context, MemArena *RendererArena)
 	return true;
 }
 
-b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
+b8 SelectPhysicalDevice(VulkanContext *Context)
 {
 	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
 
@@ -359,7 +359,7 @@ b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena)
 	return false;
 }
 
-void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena)
+void VulkanDeviceDestroy(VulkanContext *Context)
 {
 	LogInfo("Destroying logical device");
 	if (Context->Device.LogicalDevice)
@@ -383,4 +383,28 @@ void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena)
 	Context->Device.PresentIndex = (u32)(-1);
 	Context->Device.TransferIndex = (u32)(-1);
 	Context->Device.ComputeIndex = (u32)(-1);
+}
+
+b8 VulkanDeviceDetectDepthFormat(VulkanDevice *Device)
+{
+	// NOTE: The formats that we want in preference order
+	VkFormat PreferredFormats[3] = {VK_FORMAT_D32_SFLOAT,
+									VK_FORMAT_D32_SFLOAT_S8_UINT,
+									VK_FORMAT_D24_UNORM_S8_UINT};
+
+	u32 Flag = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	for (u32 Idx = 0; Idx < ArrayCount(PreferredFormats); ++Idx)
+	{
+		VkFormatProperties Properties;
+		vkGetPhysicalDeviceFormatProperties(Device->PhysicalDevice, PreferredFormats[Idx], &Properties);
+
+		if (CheckFlags(Properties.linearTilingFeatures, Flag) ||
+			CheckFlags(Properties.optimalTilingFeatures, Flag))
+		{
+			Device->DepthFormat = PreferredFormats[Idx];
+			return true;
+		}
+	}
+
+	return false;
 }

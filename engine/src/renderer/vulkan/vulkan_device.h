@@ -2,8 +2,10 @@
 
 #include "vulkan_types.h"
 
-b8 VulkanDeviceCreate(VulkanContext *Context, MemArena *RendererArena);
+b8 VulkanDeviceCreate(VulkanContext *Context);
 
-void VulkanDeviceDestroy(VulkanContext *Context, MemArena *RendererArena);
+void VulkanDeviceDestroy(VulkanContext *Context);
 
-b8 SelectPhysicalDevice(VulkanContext *Context, MemArena *RendererArena);
+b8 SelectPhysicalDevice(VulkanContext *Context);
+
+b8 VulkanDeviceDetectDepthFormat(VulkanDevice *Device);

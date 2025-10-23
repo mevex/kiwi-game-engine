@@ -25,15 +25,46 @@ struct VulkanDevice
 	VkPhysicalDeviceProperties Properties;
 	VkPhysicalDeviceFeatures Features;
 	VkPhysicalDeviceMemoryProperties MemoryProperties;
+
+	VkFormat DepthFormat;
+};
+
+struct VulkanImage
+{
+	VkImage Handle;
+	VkImageView View;
+	VkDeviceMemory Memory;
+	u32 Width;
+	u32 Height;
+};
+
+struct VulkanSwapchain
+{
+	VkSurfaceFormatKHR ImageFormat;
+	u8 MaxFramesInFlight;
+	VkSwapchainKHR Handle;
+	u32 ImageCount;
+	VkImage *Images;
+	VkImageView *Views;
+
+	VulkanImage DepthAttachment;
 };
 
 struct VulkanContext
 {
+	u32 FramebufferWidth;
+	u32 FramebufferHeight;
+
 	VkInstance Instance;
 	VkAllocationCallbacks *Allocator;
 	VkSurfaceKHR Surface;
 
 	VulkanDevice Device;
+
+	VulkanSwapchain Swapchain;
+	u32 ImageIndex;
+	u32 CurrentFrame;
+	b8 RecreatingSwapchain;
 
 #ifdef KIWI_SLOW
 	VkDebugUtilsMessengerEXT DebugMessenger;

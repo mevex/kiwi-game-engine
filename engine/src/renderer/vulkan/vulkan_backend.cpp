@@ -1,6 +1,7 @@
 #include "vulkan_backend.h"
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -127,11 +128,14 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 		return false;
 	}
 
-	if (!VulkanDeviceCreate(&Context, Arena))
+	if (!VulkanDeviceCreate(&Context))
 	{
 		LogFatal("Could not create Vulkan device");
 		return false;
 	}
+
+	VulkanSwapchainCreate(&Context, Context.FramebufferWidth, Context.FramebufferHeight,
+						  Arena, &Context.Swapchain);
 
 	LogInfo("Vulkan renderer initialized successfully");
 	return true;
@@ -139,8 +143,10 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 
 void VulkanRenderer::Terminate()
 {
+	VulkanSwapchainDestroy(&Context, &Context.Swapchain);
+
 	LogDebug("Destroying Vulkan device");
-	VulkanDeviceDestroy(&Context, Arena);
+	VulkanDeviceDestroy(&Context);
 
 	LogDebug("Destroying Vulkan surface");
 	if (Context.Surface)
@@ -162,6 +168,8 @@ void VulkanRenderer::Terminate()
 
 	LogDebug("Destroyng the Vulkan Instance");
 	vkDestroyInstance(Context.Instance, Context.Allocator);
+
+	Arena->Clear();
 }
 
 void VulkanRenderer::Resized()
