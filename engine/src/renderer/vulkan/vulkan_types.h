@@ -50,6 +50,44 @@ struct VulkanSwapchain
 	VulkanImage DepthAttachment;
 };
 
+enum VulkanRenderPassState
+{
+	RPS_NotAllocated,
+	RPS_Ready,
+	RPS_Recording,
+	RPS_InRenderPass,
+	RPS_RecordingEnded,
+	RPS_Submitted,
+};
+
+struct VulkanRenderPass
+{
+	VkRenderPass Handle;
+	i32 x, y, w, h;
+	f32 r, g, b, a;
+
+	f32 Depth;
+	u32 Stencil;
+
+	VulkanRenderPassState State;
+};
+
+enum VulkanCommandBufferState
+{
+	CBS_NotAllocated,
+	CBS_Ready,
+	CBS_Recording,
+	CBS_InRenderPass,
+	CBS_RecordingEnded,
+	CBS_Submitted,
+};
+
+struct VulkanCommandBuffer
+{
+	VkCommandBuffer Handle;
+	VulkanCommandBufferState State;
+};
+
 struct VulkanContext
 {
 	u32 FramebufferWidth;
@@ -65,6 +103,8 @@ struct VulkanContext
 	u32 ImageIndex;
 	u32 CurrentFrame;
 	b8 RecreatingSwapchain;
+
+	VulkanRenderPass MainRenderPass;
 
 #ifdef KIWI_SLOW
 	VkDebugUtilsMessengerEXT DebugMessenger;

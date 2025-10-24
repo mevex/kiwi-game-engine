@@ -2,6 +2,7 @@
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_renderpass.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -137,12 +138,18 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName)
 	VulkanSwapchainCreate(&Context, Context.FramebufferWidth, Context.FramebufferHeight,
 						  Arena, &Context.Swapchain);
 
+	VulkanRenderPassCreate(&Context,
+						   0, 0, Context.FramebufferWidth, Context.FramebufferHeight,
+						   1.0f, 0.47f, 0.0f, 1.0f, 1.0f, 0, &Context.MainRenderPass);
+
 	LogInfo("Vulkan renderer initialized successfully");
 	return true;
 }
 
 void VulkanRenderer::Terminate()
 {
+	VulkanRenderPassDestroy(&Context, &Context.MainRenderPass);
+
 	VulkanSwapchainDestroy(&Context, &Context.Swapchain);
 
 	LogDebug("Destroying Vulkan device");
