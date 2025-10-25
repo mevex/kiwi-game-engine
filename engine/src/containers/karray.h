@@ -60,7 +60,7 @@ public:
 		Length = InitialLength;
 		Capacity = InitialCapacity;
 		Stride = sizeof(T);
-		Elements = (T *)Arena->PushNoZero(Capacity * Stride);
+		Elements = (T *)Arena->Push(Capacity * Stride);
 	}
 
 	void Destroy()
