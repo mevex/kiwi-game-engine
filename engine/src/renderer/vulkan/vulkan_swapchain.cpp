@@ -99,17 +99,17 @@ void VulkanSwapchainCreate(VulkanContext *Context, u32 Width, u32 Height, MemAre
 	SwapchainExtent.width = Clamp(Width, Min.width, Max.width);
 	SwapchainExtent.height = Clamp(Height, Min.height, Max.height);
 
-	// NOTE: We expect the min to be 1, so the ImageCount should be
-	// set to 2. However, we safeguard checking
-	// the max to be sure that 2 is actually supported.
-	// Not really necessary on today's hardware.
+	// NOTE: We expect the min to be 2, so the ImageCount should be set to 3. This is because we want
+	// to use triple buffering and so while 1 image is being presented we render on the other 2.
+	// However, we safeguard by checking the max to be sure that 3 is actually supported.
+	// Not really necessary on today's hardware, but better safe than sorry.
 	u32 ImageCount = SwapchainSupport.Capabilities.minImageCount + 1;
 	if (SwapchainSupport.Capabilities.maxImageCount > 0 &&
 		ImageCount > SwapchainSupport.Capabilities.maxImageCount)
 	{
 		ImageCount = SwapchainSupport.Capabilities.maxImageCount;
 	}
-	OutSwapchain->MaxFramesInFlight = (u8)ImageCount;
+	OutSwapchain->MaxFramesInFlight = (u8)ImageCount - 1;
 
 	VkSwapchainCreateInfoKHR SwapchainCreateInfo = {};
 	SwapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;

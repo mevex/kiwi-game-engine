@@ -109,6 +109,17 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 
 	LogInfo("Queues obtained");
 
+	// Create graphics command pool
+	VkCommandPoolCreateInfo PoolCreateInfo = {};
+	PoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	PoolCreateInfo.queueFamilyIndex = Device.GraphicsIndex;
+	PoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+	VK_CHECK(vkCreateCommandPool(Device.LogicalDevice, &PoolCreateInfo, Context->Allocator,
+								 &Device.GraphicsCommandPool));
+
+	LogInfo("Craphics command pool Created");
+
 	return true;
 }
 
@@ -361,6 +372,10 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 
 void VulkanDeviceDestroy(VulkanContext *Context)
 {
+	LogInfo("Destroying command pools");
+	vkDestroyCommandPool(Context->Device.LogicalDevice, Context->Device.GraphicsCommandPool,
+						 Context->Allocator);
+
 	LogInfo("Destroying logical device");
 	if (Context->Device.LogicalDevice)
 	{

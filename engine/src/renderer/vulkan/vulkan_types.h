@@ -22,6 +22,8 @@ struct VulkanDevice
 	VkQueue TransferQueue;
 	VkQueue ComputeQueue;
 
+	VkCommandPool GraphicsCommandPool;
+
 	VkPhysicalDeviceProperties Properties;
 	VkPhysicalDeviceFeatures Features;
 	VkPhysicalDeviceMemoryProperties MemoryProperties;
@@ -105,6 +107,8 @@ struct VulkanContext
 	b8 RecreatingSwapchain;
 
 	VulkanRenderPass MainRenderPass;
+
+	KArray<VulkanCommandBuffer> GraphicsCommandBuffers;
 
 #ifdef KIWI_SLOW
 	VkDebugUtilsMessengerEXT DebugMessenger;

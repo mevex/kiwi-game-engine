@@ -17,4 +17,9 @@ public:
 	b8 EndFrame(f32 DeltaTime) override;
 
 	static VulkanContext Context;
+
+private:
+	void CreateCommandBuffers();
+
+	void DestroyCommandBuffers();
 };
