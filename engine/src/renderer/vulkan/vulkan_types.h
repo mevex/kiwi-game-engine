@@ -100,6 +100,12 @@ struct VulkanSwapchain
 	KArray<VulkanFramebuffer> Framebuffers;
 };
 
+struct VulkanFence
+{
+	VkFence Handle;
+	b8 IsSignaled;
+};
+
 struct VulkanContext
 {
 	u32 FramebufferWidth;
@@ -119,6 +125,12 @@ struct VulkanContext
 	VulkanRenderPass MainRenderPass;
 
 	KArray<VulkanCommandBuffer> GraphicsCommandBuffers;
+
+	KArray<VkSemaphore> ImageAvailableSemaphores;
+	KArray<VkSemaphore> QueueCompleteSemaphores;
+	KArray<VulkanFence> InFlightFences;
+
+	KArray<VulkanFence *> ImagesInFlight;
 
 #ifdef KIWI_SLOW
 	VkDebugUtilsMessengerEXT DebugMessenger;

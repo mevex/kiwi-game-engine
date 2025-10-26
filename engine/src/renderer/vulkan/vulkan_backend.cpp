@@ -5,6 +5,7 @@
 #include "vulkan_renderpass.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_framebuffer.h"
+#include "vulkan_fence.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -152,12 +153,56 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 
 	CreateCommandBuffers();
 
+	// Create sync objects
+	// TODO: Are we allocating on the right arena?
+	Context.ImageAvailableSemaphores.Create(Arena, Context.Swapchain.MaxFramesInFlight,
+											Context.Swapchain.MaxFramesInFlight);
+	Context.QueueCompleteSemaphores.Create(Arena, Context.Swapchain.MaxFramesInFlight,
+										   Context.Swapchain.MaxFramesInFlight);
+	Context.InFlightFences.Create(Arena, Context.Swapchain.MaxFramesInFlight,
+								  Context.Swapchain.MaxFramesInFlight);
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.MaxFramesInFlight; ++Idx)
+	{
+		VkSemaphoreCreateInfo SemaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+		vkCreateSemaphore(Context.Device.LogicalDevice, &SemaphoreCreateInfo, Context.Allocator,
+						  &Context.ImageAvailableSemaphores[Idx]);
+		vkCreateSemaphore(Context.Device.LogicalDevice, &SemaphoreCreateInfo, Context.Allocator,
+						  &Context.QueueCompleteSemaphores[Idx]);
+
+		// NOTE: Creating the fence in a signaled state.
+		VulkanFenceCreate(&Context, true, &Context.InFlightFences[Idx]);
+	}
+
+	// TODO: Are we allocating on the right arena?
+	Context.ImagesInFlight.Create(Arena, Context.Swapchain.ImageCount, Context.Swapchain.ImageCount);
+
 	LogInfo("Vulkan renderer initialized successfully");
 	return true;
 }
 
 void VulkanRenderer::Terminate()
 {
+	// NOTE: Before terminating we want to be sure that all the graphics operations are over
+	vkDeviceWaitIdle(Context.Device.LogicalDevice);
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.MaxFramesInFlight; ++Idx)
+	{
+		if (Context.ImageAvailableSemaphores[Idx])
+		{
+			vkDestroySemaphore(Context.Device.LogicalDevice, Context.ImageAvailableSemaphores[Idx],
+							   Context.Allocator);
+		}
+		if (Context.QueueCompleteSemaphores[Idx])
+		{
+			vkDestroySemaphore(Context.Device.LogicalDevice, Context.QueueCompleteSemaphores[Idx],
+							   Context.Allocator);
+		}
+
+		// NOTE: Creating the fence in a signaled state.
+		VulkanFenceDestroy(&Context, &Context.InFlightFences[Idx]);
+	}
+
 	DestroyCommandBuffers();
 
 	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
