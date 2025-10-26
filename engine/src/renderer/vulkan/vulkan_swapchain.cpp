@@ -263,4 +263,7 @@ void VulkanSwapchainPresent(VulkanContext *Context, VulkanSwapchain *Swapchain,
 	{
 		LogFatal("Failed to present swap chain image");
 	}
+
+	Context->CurrentFrame = (Context->CurrentFrame + 1) %
+							Swapchain->MaxFramesInFlight;
 }
