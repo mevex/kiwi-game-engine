@@ -8,7 +8,7 @@ struct PlatformState;
 class Renderer
 {
 public:
-	static b8 Initialize(const char *ApplicationName, PlatformState *PlatState);
+	static b8 Initialize(const char *ApplicationName, u32 Width, u32 Height, PlatformState *PlatState);
 
 	static void Terminate();
 

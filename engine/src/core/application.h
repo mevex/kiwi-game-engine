@@ -26,8 +26,8 @@ public:
 
 private:
 	static Application *Instance;
-	MemArena *Arena = nullptr;
 
+	MemArena *Arena = nullptr;
 	Game *GameInstance;
 	b8 IsRunning = false;
 	b8 IsSuspended = false;

@@ -10,10 +10,12 @@
 
 VulkanContext VulkanRenderer::Context = {};
 
-b8 VulkanRenderer::Initialize(const char *ApplicationName)
+b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height)
 {
 	// TODO: Custom allocator
 	Context.Allocator = nullptr;
+	Context.FramebufferWidth = Width;
+	Context.FramebufferHeight = Height;
 
 	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
 

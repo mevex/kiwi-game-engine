@@ -45,14 +45,6 @@ b8 Application::Create(Game *GameInstance)
 
 	InputSystem::Initialize();
 
-	// TODO: Remove this
-	LogFatal("This is a test message: %.2f", 3.14f);
-	LogError("This is a test message: %.2f", 3.14f);
-	LogWarning("This is a test message: %.2f", 3.14f);
-	LogInfo("This is a test message: %.2f", 3.14f);
-	LogDebug("This is a test message: %.2f", 3.14f);
-	LogTrace("This is a test message: %.2f", 3.14f);
-
 	// Flag the application as running
 	Application::Instance->IsRunning = true;
 	Application::Instance->IsSuspended = false;
@@ -66,7 +58,7 @@ b8 Application::Create(Game *GameInstance)
 	}
 
 	// NOTE: Initialize Renderer after the Platform in order to have a valid PlatformState
-	if (!Renderer::Initialize(AppConfig->Name, &Application::Instance->PlatformState))
+	if (!Renderer::Initialize(AppConfig->Name, AppConfig->Width, AppConfig->Height, &Application::Instance->PlatformState))
 	{
 		LogFatal("Failed to initialize the Renderer");
 		return false;

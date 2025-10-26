@@ -6,7 +6,7 @@
 class VulkanRenderer : public RendererBackend
 {
 public:
-	b8 Initialize(const char *ApplicationName) override;
+	b8 Initialize(const char *ApplicationName, u32 Width, u32 Height) override;
 
 	void Terminate() override;
 

@@ -8,12 +8,12 @@ struct PlatformState;
 class RendererBackend
 {
 public:
-	static b8 Create(RendererBackendType Type, PlatformState *PlatState,
-					 const char *ApplicationName, RendererBackend **OutRendererBackend);
+	static b8 Create(RendererBackendType Type, PlatformState *PlatState, const char *ApplicationName,
+					 u32 Width, u32 Height, RendererBackend **OutRendererBackend);
 
 	static void Destroy(RendererBackend *RendererBackend);
 
-	virtual b8 Initialize(const char *ApplicationName) = 0;
+	virtual b8 Initialize(const char *ApplicationName, u32 Width, u32 Height) = 0;
 
 	virtual void Terminate() = 0;
 

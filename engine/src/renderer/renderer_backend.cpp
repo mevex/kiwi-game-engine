@@ -3,8 +3,8 @@
 #include "core/kiwi_mem.h"
 #include <new>
 
-b8 RendererBackend::Create(RendererBackendType Type, PlatformState *PlatState,
-						   const char *ApplicationName, RendererBackend **OutRendererBackend)
+b8 RendererBackend::Create(RendererBackendType Type, PlatformState *PlatState, const char *ApplicationName,
+						   u32 Width, u32 Height, RendererBackend **OutRendererBackend)
 {
 	if (Type == RendererBackendType_Vulkan)
 	{
@@ -25,7 +25,7 @@ b8 RendererBackend::Create(RendererBackendType Type, PlatformState *PlatState,
 	NewBackend->PlatState = PlatState;
 	NewBackend->FrameCount = 0;
 
-	if (NewBackend->Initialize(ApplicationName))
+	if (NewBackend->Initialize(ApplicationName, Width, Height))
 	{
 		return true;
 	}

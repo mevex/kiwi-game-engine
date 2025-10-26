@@ -5,10 +5,10 @@
 
 RendererBackend *Renderer::Backend = nullptr;
 
-b8 Renderer::Initialize(const char *ApplicationName, PlatformState *PlatState)
+b8 Renderer::Initialize(const char *ApplicationName, u32 Width, u32 Height, PlatformState *PlatState)
 {
 	// TODO: Vulkan type is hardcoded
-	if (RendererBackend::Create(RendererBackendType_Vulkan, PlatState, ApplicationName, &Backend))
+	if (RendererBackend::Create(RendererBackendType_Vulkan, PlatState, ApplicationName, Width, Height, &Backend))
 	{
 		return true;
 	}
