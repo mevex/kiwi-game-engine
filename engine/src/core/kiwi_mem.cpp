@@ -13,6 +13,7 @@ local_var const char *MemTagStrings[MemTag_Count] = {
 	"MemTag_KArray",
 	"MemTag_Renderer",
 	"MemTag_String",
+	"MemTag_Unclear",
 };
 
 u32 MemSystem::PageSize = 0;
@@ -48,22 +49,9 @@ MemArena *MemSystem::GetArena(u8 Tag)
 	return &Arenas[Tag];
 }
 
-SUPPRESS_WARNING(4100)
-void *MemSystem::Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags)
+void *MemSystem::AllocateToUnclearArena(u64 Size)
 {
-	KDebugBreak();
-	return nullptr;
-}
-
-void *MemSystem::Allocate(u64 Size, u8 Tag, u32 MemAllocFlags)
-{
-	return Allocate(nullptr, Size, Tag, MemAllocFlags);
-}
-
-SUPPRESS_WARNING(4100)
-void MemSystem::Free(void *Address, u64 Size, u8 Tag, u8 MemDeallocFlag)
-{
-	KDebugBreak();
+	return Arenas[MemTag_Unclear].Push(Size);
 }
 
 void MemSystem::Set(void *Address, u64 Size, u32 Value)

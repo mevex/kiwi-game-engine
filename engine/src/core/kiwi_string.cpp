@@ -9,16 +9,22 @@ u64 KStr::Length(const char *Str)
 	return strlen(Str);
 }
 
+// TODO: Fix this
 char *KStr::Duplicate(const char *Str)
 {
+	KDebugBreak();
+#if 0
 	// NOTE: +1 for the null terminator
 	u64 Len = KStr::Length(Str) + 1;
 
-	// TODO: This had MakeZeroes set to true
 	char *Copy = (char *)MemSystem::Allocate(Len, MemTag_String);
 	MemSystem::Copy(Copy, (void *)Str, Len);
 
 	return Copy;
+#else
+	Str;
+	return (char *)"";
+#endif
 }
 
 b8 KStr::Equal(const char *StrA, const char *StrB)

@@ -14,6 +14,12 @@ enum MemTag
 	MemTag_Renderer,
 	MemTag_String,
 
+	// NOTE: All the allocation done in this arena are never gonna be cleared because
+	// it means that we still have to figure out where they should be placed so their
+	// lifetime is not clear.
+	// Eventually this arena should be always empty.
+	MemTag_Unclear,
+
 	MemTag_Count
 };
 
@@ -93,12 +99,8 @@ public:
 	static void Terminate();
 
 	static MemArena *GetArena(u8 Tag);
+	static void *AllocateToUnclearArena(u64 Size);
 
-	static void *Allocate(void *Address, u64 Size, u8 Tag, u32 MemAllocFlags);
-	static void *Allocate(u64 Size, u8 Tag,
-						  u32 MemAllocFlags = MemAlloc_Reserve | MemAlloc_Commit | MemAlloc_ReadWrite);
-	static void Free(void *Address, u64 Size, u8 Tag,
-					 u8 MemDeallocFlag = MemDealloc_Release);
 	static void Set(void *Address, u64 Size, u32 Value);
 	static void Zero(void *Address, u64 Size);
 	static void Copy(void *Dest, void *Source, u64 Size);
