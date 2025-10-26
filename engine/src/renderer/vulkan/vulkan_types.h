@@ -40,18 +40,6 @@ struct VulkanImage
 	u32 Height;
 };
 
-struct VulkanSwapchain
-{
-	VkSurfaceFormatKHR ImageFormat;
-	u8 MaxFramesInFlight;
-	VkSwapchainKHR Handle;
-	u32 ImageCount;
-	VkImage *Images;
-	VkImageView *Views;
-
-	VulkanImage DepthAttachment;
-};
-
 enum VulkanRenderPassState
 {
 	RPS_NotAllocated,
@@ -88,6 +76,28 @@ struct VulkanCommandBuffer
 {
 	VkCommandBuffer Handle;
 	VulkanCommandBufferState State;
+};
+
+struct VulkanFramebuffer
+{
+	VkFramebuffer Handle;
+	u32 AttachmentCount;
+	VkImageView *Attachments;
+	VulkanRenderPass *RenderPass;
+};
+
+struct VulkanSwapchain
+{
+	VkSurfaceFormatKHR ImageFormat;
+	u8 MaxFramesInFlight;
+	VkSwapchainKHR Handle;
+	u32 ImageCount;
+	VkImage *Images;
+	VkImageView *Views;
+
+	VulkanImage DepthAttachment;
+
+	KArray<VulkanFramebuffer> Framebuffers;
 };
 
 struct VulkanContext

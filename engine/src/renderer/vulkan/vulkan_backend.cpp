@@ -4,6 +4,7 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_renderpass.h"
 #include "vulkan_command_buffer.h"
+#include "vulkan_framebuffer.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -145,6 +146,10 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 						   0, 0, Context.FramebufferWidth, Context.FramebufferHeight,
 						   1.0f, 0.47f, 0.0f, 1.0f, 1.0f, 0, &Context.MainRenderPass);
 
+	// TODO: Are we allocating on the right arena?
+	Context.Swapchain.Framebuffers.Create(Arena, Context.Swapchain.ImageCount, Context.Swapchain.ImageCount);
+	RegenerateFramebuffers(&Context.Swapchain, &Context.MainRenderPass);
+
 	CreateCommandBuffers();
 
 	LogInfo("Vulkan renderer initialized successfully");
@@ -154,6 +159,11 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 void VulkanRenderer::Terminate()
 {
 	DestroyCommandBuffers();
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
+	{
+		VulkanFramebufferDestroy(&Context, &Context.Swapchain.Framebuffers[Idx]);
+	}
 
 	VulkanRenderPassDestroy(&Context, &Context.MainRenderPass);
 
@@ -275,5 +285,18 @@ void VulkanRenderer::DestroyCommandBuffers()
 			VulkanCommandBufferFree(&Context, Context.Device.GraphicsCommandPool,
 									&Context.GraphicsCommandBuffers[Idx]);
 		}
+	}
+}
+
+void VulkanRenderer::RegenerateFramebuffers(VulkanSwapchain *Swapchain, VulkanRenderPass *RenderPass)
+{
+	for (u32 Idx = 0; Idx < Swapchain->ImageCount; ++Idx)
+	{
+		// TODO: Make this dynamic
+		u32 AttachmentCount = 2;
+		VkImageView Attachments[] = {Swapchain->Views[Idx], Swapchain->DepthAttachment.View};
+
+		VulkanFramebufferCreate(&Context, RenderPass, Context.FramebufferWidth, Context.FramebufferHeight,
+								AttachmentCount, Attachments, &Swapchain->Framebuffers[Idx]);
 	}
 }
