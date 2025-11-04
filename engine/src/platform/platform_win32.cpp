@@ -370,13 +370,15 @@ Win32ProcessMessage(HWND WindowHandle, u32 Message, WPARAM WParam, LPARAM LParam
 	}
 	case WM_SIZE:
 	{
-		// TODO: Fire and event for window resize
-		/*
 		RECT R;
 		GetClientRect(WindowHandle, &R);
 		u32 Width = R.right - R.left;
 		u32 Height = R.bottom - R.top;
-		*/
+
+		EventContext Context = {};
+		Context.u16[0] = (u16)Width;
+		Context.u16[1] = (u16)Height;
+		EventSystem::Fire(SEC_Resized, nullptr, Context);
 		break;
 	}
 	case WM_KEYDOWN:

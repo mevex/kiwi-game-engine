@@ -17,7 +17,7 @@ public:
 
 	virtual void Terminate() = 0;
 
-	virtual void Resized() = 0;
+	virtual void Resized(u16 Width, u16 Height) = 0;
 
 	virtual b8 BeginFrame(f32 DeltaTime) = 0;
 

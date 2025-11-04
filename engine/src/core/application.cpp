@@ -2,20 +2,11 @@
 #include "core/logger.h"
 #include "game_types.h"
 #include "core/kiwi_mem.h"
-#include "core/event.h"
 #include "core/input.h"
 #include "core/timer.h"
 #include "renderer/renderer_frontend.h"
 
-ON_EVENT(HandleEvent);
-ON_EVENT(HandleKey);
-
 Application *Application::Instance = nullptr;
-
-void Application::SetIsRunning(b8 Running)
-{
-	Application::Instance->IsRunning = Running;
-}
 
 b8 Application::Create(Game *GameInstance)
 {
@@ -42,6 +33,7 @@ b8 Application::Create(Game *GameInstance)
 	EventSystem::Register(SEC_ApplicationQuit, Application::Instance, HandleEvent);
 	EventSystem::Register(SEC_KeyPressed, Application::Instance, HandleKey);
 	EventSystem::Register(SEC_KeyReleased, Application::Instance, HandleKey);
+	EventSystem::Register(SEC_Resized, Application::Instance, Resize);
 
 	InputSystem::Initialize();
 
@@ -156,6 +148,7 @@ b8 Application::Run()
 	EventSystem::Unregister(SEC_ApplicationQuit, Application::Instance, HandleEvent);
 	EventSystem::Unregister(SEC_KeyPressed, Application::Instance, HandleKey);
 	EventSystem::Unregister(SEC_KeyReleased, Application::Instance, HandleKey);
+	EventSystem::Unregister(SEC_Resized, Application::Instance, Resize);
 
 	InputSystem::Terminate();
 	EventSystem::Terminate();
@@ -166,14 +159,14 @@ b8 Application::Run()
 }
 
 SUPPRESS_WARNING(4100)
-ON_EVENT(HandleEvent)
+DEFINE_EVENT_FUNCTION(Application::HandleEvent)
 {
 	switch (Code)
 	{
 	case SEC_ApplicationQuit:
 	{
 		LogInfo("SEC_ApplicationQuit recieved, shutting down");
-		Application::SetIsRunning(false);
+		Instance->IsRunning = false;
 		return true;
 	}
 	}
@@ -181,7 +174,7 @@ ON_EVENT(HandleEvent)
 }
 
 SUPPRESS_WARNING(4100)
-ON_EVENT(HandleKey)
+DEFINE_EVENT_FUNCTION(Application::HandleKey)
 {
 	if (Code == SEC_KeyReleased)
 	{
@@ -196,4 +189,41 @@ ON_EVENT(HandleKey)
 		}
 	}
 	return false;
+}
+
+SUPPRESS_WARNING(4100)
+DEFINE_EVENT_FUNCTION(Application::Resize)
+{
+	u16 Width = Data.u16[0];
+	u16 Height = Data.u16[1];
+
+	ApplicationConfig *AppConfig = &Instance->GameInstance->AppConfig;
+	if (Width != AppConfig->Width || Height != AppConfig->Height)
+	{
+		// TODO: WTF is with all these duplicate infos????
+		AppConfig->Width = Width;
+		AppConfig->Height = Height;
+		Instance->Width = Width;
+		Instance->Height = Height;
+
+		LogDebug("Window Resized: %i, %i", Width, Height);
+
+		// Handle minimization
+		if (Width == 0 || Height == 0)
+		{
+			LogInfo("Window minimized, suspending application");
+			Instance->IsSuspended = true;
+		}
+		else
+		{
+			Instance->IsSuspended = false;
+			Instance->GameInstance->OnResize(Instance->GameInstance, Width, Height);
+			Renderer::OnResized(Width, Height);
+		}
+	}
+
+	// NOTE: Event handled! I don't want anybody to mess with this
+	// and all the code should be in one place for the engine: here,
+	// and one place for the game: Game::OnResize
+	return true;
 }

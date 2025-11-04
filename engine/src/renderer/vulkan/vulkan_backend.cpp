@@ -241,8 +241,14 @@ void VulkanRenderer::Terminate()
 	Arena->Clear();
 }
 
-void VulkanRenderer::Resized()
+void VulkanRenderer::Resized(u16 Width, u16 Height)
 {
+	CachedFramebufferWidth = Width;
+	CachedFramebufferHeight = Height;
+	Context.FramebufferSizeGeneration++;
+
+	LogInfo("Vulkan renderer backend resized. W: %i, H: %i, Gen: %llu",
+			Width, Height, Context.FramebufferSizeGeneration);
 }
 
 // TODO: Error

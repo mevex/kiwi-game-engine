@@ -2,6 +2,7 @@
 
 #include "defines.h"
 #include "platform/platform.h"
+#include "core/event.h"
 
 struct Game;
 class MemArena;
@@ -22,7 +23,10 @@ public:
 	KIWI_API static b8 Create(Game *GameInstance);
 	KIWI_API static b8 Run();
 
-	static void SetIsRunning(b8 Running);
+	// Events
+	static DEFINE_EVENT_FUNCTION(HandleEvent);
+	static DEFINE_EVENT_FUNCTION(HandleKey);
+	static DEFINE_EVENT_FUNCTION(Resize);
 
 private:
 	static Application *Instance;

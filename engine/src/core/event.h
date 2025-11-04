@@ -71,8 +71,8 @@ enum SystemEventCode : u8
 	SEC_Max = 0xff
 };
 
-#define ON_EVENT(name) b8 name(u16 Code, void *Sender, void *Listener, EventContext Data)
-typedef ON_EVENT(on_event);
+#define DEFINE_EVENT_FUNCTION(name) b8 name(u16 Code, void *Sender, void *Listener, EventContext Data)
+typedef DEFINE_EVENT_FUNCTION(on_event);
 
 struct RegisteredEvent
 {

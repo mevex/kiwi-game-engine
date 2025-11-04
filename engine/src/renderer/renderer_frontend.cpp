@@ -22,10 +22,16 @@ void Renderer::Terminate()
 	RendererBackend::Destroy(Backend);
 }
 
-// TODO: Error
-SUPPRESS_WARNING(4100)
 void Renderer::OnResized(u16 Width, u16 Height)
 {
+	if (Backend)
+	{
+		Backend->Resized(Width, Height);
+	}
+	else
+	{
+		LogWarning("Renderer backend does not exist and cannot be resized");
+	}
 }
 
 b8 Renderer::DrawFrame(RenderPacket *Packet)

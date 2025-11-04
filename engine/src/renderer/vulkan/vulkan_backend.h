@@ -10,7 +10,7 @@ public:
 
 	void Terminate() override;
 
-	void Resized() override;
+	void Resized(u16 Width, u16 Height) override;
 
 	b8 BeginFrame(f32 DeltaTime) override;
 
