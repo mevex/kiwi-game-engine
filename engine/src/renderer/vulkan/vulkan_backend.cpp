@@ -155,14 +155,14 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 
 	// Create sync objects
 	// TODO: Are we allocating on the right arena?
-	Context.ImageAvailableSemaphores.Create(Arena, Context.Swapchain.MaxFramesInFlight,
-											Context.Swapchain.MaxFramesInFlight);
-	Context.QueueCompleteSemaphores.Create(Arena, Context.Swapchain.MaxFramesInFlight,
-										   Context.Swapchain.MaxFramesInFlight);
-	Context.InFlightFences.Create(Arena, Context.Swapchain.MaxFramesInFlight,
-								  Context.Swapchain.MaxFramesInFlight);
+	Context.ImageAvailableSemaphores.Create(Arena, Context.Swapchain.ImageCount,
+											Context.Swapchain.ImageCount);
+	Context.QueueCompleteSemaphores.Create(Arena, Context.Swapchain.ImageCount,
+										   Context.Swapchain.ImageCount);
+	Context.InFlightFences.Create(Arena, Context.Swapchain.ImageCount,
+								  Context.Swapchain.ImageCount);
 
-	for (u32 Idx = 0; Idx < Context.Swapchain.MaxFramesInFlight; ++Idx)
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
 	{
 		VkSemaphoreCreateInfo SemaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
 		vkCreateSemaphore(Context.Device.LogicalDevice, &SemaphoreCreateInfo, Context.Allocator,
@@ -186,7 +186,7 @@ void VulkanRenderer::Terminate()
 	// NOTE: Before terminating we want to be sure that all the graphics operations are over
 	vkDeviceWaitIdle(Context.Device.LogicalDevice);
 
-	for (u32 Idx = 0; Idx < Context.Swapchain.MaxFramesInFlight; ++Idx)
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
 	{
 		if (Context.ImageAvailableSemaphores[Idx])
 		{
@@ -255,6 +255,82 @@ void VulkanRenderer::Resized(u16 Width, u16 Height)
 SUPPRESS_WARNING(4100)
 b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 {
+	VulkanDevice *Device = &Context.Device;
+
+	// NOTE: if we are reacreating the swapchain we can't proceed further
+	if (Context.RecreatingSwapchain)
+	{
+		VkResult Result = vkDeviceWaitIdle(Device->LogicalDevice);
+		if (!VulkanResultIsSuccess(Result))
+		{
+			LogError("Vulkan Renderer Begin Frame Wait[1] failed: %s", VulkanResultString(Result, true));
+			return false;
+		}
+		LogInfo("Recreating Swapchain, booting");
+		return false;
+	}
+
+	// NOTE: if the framebuffer has been resized a new swapchain must be recreated
+	if (Context.FramebufferSizeGeneration != Context.FramebufferSizeLastGeneration)
+	{
+		VkResult Result = vkDeviceWaitIdle(Device->LogicalDevice);
+		if (!VulkanResultIsSuccess(Result))
+		{
+			LogError("Vulkan Renderer Begin Frame Wait[2] failed: %s", VulkanResultString(Result, true));
+			return false;
+		}
+
+		if (!RecreateSwapchain())
+		{
+			return false;
+		}
+
+		LogInfo("Resized, booting");
+		return false;
+	}
+
+	if (!VulkanFenceWait(&Context, &Context.InFlightFences[Context.CurrentFrame], UINT64_MAX))
+	{
+		LogWarning("In flight fence wait failed");
+		return false;
+	}
+
+	if (!VulkanSwapchainAcquireNextImageIndex(&Context, &Context.Swapchain, UINT64_MAX,
+											  Context.ImageAvailableSemaphores[Context.CurrentFrame],
+											  0, &Context.ImageIndex))
+	{
+		LogWarning("Failed acquiring the next image index from the swapchain");
+		return false;
+	}
+
+	VulkanCommandBuffer *CommandBuffer = &Context.GraphicsCommandBuffers[Context.ImageIndex];
+	VulkanCommandBufferReset(CommandBuffer);
+	VulkanCommandBufferBegin(CommandBuffer, false, false, false);
+
+	VkViewport Viewport = {};
+	Viewport.x = 0.0f;
+	Viewport.y = (f32)Context.FramebufferHeight;
+	Viewport.width = (f32)Context.FramebufferWidth;
+	Viewport.height = -(f32)Context.FramebufferHeight;
+	Viewport.minDepth = 0.0f;
+	Viewport.maxDepth = 1.0f;
+
+	VkRect2D Scissor;
+	Scissor.offset.x = 0;
+	Scissor.offset.y = 0;
+	Scissor.extent.width = Context.FramebufferWidth;
+	Scissor.extent.height = Context.FramebufferHeight;
+
+	vkCmdSetViewport(CommandBuffer->Handle, 0, 1, &Viewport);
+	vkCmdSetScissor(CommandBuffer->Handle, 0, 1, &Scissor);
+
+	// TODO: It's probably not necessary to do that here
+	Context.MainRenderPass.w = Context.FramebufferWidth;
+	Context.MainRenderPass.h = Context.FramebufferHeight;
+
+	VulkanRenderPassBegin(CommandBuffer, &Context.MainRenderPass,
+						  Context.Swapchain.Framebuffers[Context.ImageIndex].Handle);
+
 	return true;
 }
 
@@ -262,6 +338,52 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 SUPPRESS_WARNING(4100)
 b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 {
+	VulkanCommandBuffer *CommandBuffer = &Context.GraphicsCommandBuffers[Context.ImageIndex];
+
+	VulkanRenderPassEnd(CommandBuffer);
+
+	VulkanCommandBufferEnd(CommandBuffer);
+
+	// Make sure any previous frame is not using this image
+	if (Context.ImagesInFlight[Context.ImageIndex] != VK_NULL_HANDLE)
+	{
+		VulkanFenceWait(&Context, Context.ImagesInFlight[Context.ImageIndex], UINT64_MAX);
+	}
+
+	// and mark the image fence as in use by this frame
+	Context.ImagesInFlight[Context.ImageIndex] = &Context.InFlightFences[Context.CurrentFrame];
+
+	VulkanFenceReset(&Context, &Context.InFlightFences[Context.CurrentFrame]);
+
+	VkSubmitInfo SubmitInfo = {};
+	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	SubmitInfo.waitSemaphoreCount = 1;
+	SubmitInfo.pWaitSemaphores = &Context.ImageAvailableSemaphores[Context.CurrentFrame];
+	SubmitInfo.commandBufferCount = 1;
+	SubmitInfo.pCommandBuffers = &CommandBuffer->Handle;
+	SubmitInfo.signalSemaphoreCount = 1;
+	SubmitInfo.pSignalSemaphores = &Context.QueueCompleteSemaphores[Context.CurrentFrame];
+
+	// NOTE: each sempahore wait on the corresponding pipeline stage to complete. 1:1 ratio.
+	// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT prevents subsequent colour attachment
+	// writes from executing until the semaphore signals.
+	VkPipelineStageFlags Flags[1] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+	SubmitInfo.pWaitDstStageMask = Flags;
+
+	VkResult Result = vkQueueSubmit(Context.Device.GraphicsQueue, 1, &SubmitInfo,
+									Context.ImagesInFlight[Context.CurrentFrame]->Handle);
+	if (Result != VK_SUCCESS)
+	{
+		LogError("Queue Submit failed: %s", VulkanResultString(Result, true));
+		return false;
+	}
+
+	VulkanCommandBufferUpdateSubmitted(CommandBuffer);
+
+	VulkanSwapchainPresent(&Context, &Context.Swapchain,
+						   Context.QueueCompleteSemaphores[Context.CurrentFrame],
+						   Context.ImageIndex);
+
 	return true;
 }
 
@@ -350,4 +472,63 @@ void VulkanRenderer::RegenerateFramebuffers(VulkanSwapchain *Swapchain, VulkanRe
 		VulkanFramebufferCreate(&Context, RenderPass, Context.FramebufferWidth, Context.FramebufferHeight,
 								AttachmentCount, Attachments, &Swapchain->Framebuffers[Idx]);
 	}
+}
+
+b8 VulkanRenderer::RecreateSwapchain()
+{
+	if (Context.RecreatingSwapchain)
+	{
+		LogDebug("Already recreating the swapchain");
+		return false;
+	}
+
+	if (Context.FramebufferWidth == 0 || Context.FramebufferHeight == 0)
+	{
+		LogDebug("Trying to recreate the swapchain with a dimension that is <1");
+		return false;
+	}
+
+	// Actually recreating the Swapchain
+	Context.RecreatingSwapchain = true;
+	vkDeviceWaitIdle(Context.Device.LogicalDevice);
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
+	{
+		Context.ImagesInFlight[Idx] = nullptr;
+	}
+
+	VulkanSwapchainRecreate(&Context, CachedFramebufferWidth, CachedFramebufferHeight, &Context.Swapchain);
+
+	Context.FramebufferWidth = CachedFramebufferWidth;
+	Context.FramebufferHeight = CachedFramebufferHeight;
+	Context.MainRenderPass.w = Context.FramebufferWidth;
+	Context.MainRenderPass.h = Context.FramebufferHeight;
+	CachedFramebufferWidth = 0;
+	CachedFramebufferHeight = 0;
+
+	Context.FramebufferSizeLastGeneration = Context.FramebufferSizeGeneration;
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
+	{
+		VulkanCommandBufferFree(&Context, Context.Device.GraphicsCommandPool,
+								&Context.GraphicsCommandBuffers[Idx]);
+	}
+
+	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
+	{
+		VulkanFramebufferDestroy(&Context, &Context.Swapchain.Framebuffers[Idx]);
+	}
+
+	Context.MainRenderPass.x = 0;
+	Context.MainRenderPass.y = 0;
+	Context.MainRenderPass.w = Context.FramebufferWidth;
+	Context.MainRenderPass.h = Context.FramebufferHeight;
+
+	RegenerateFramebuffers(&Context.Swapchain, &Context.MainRenderPass);
+
+	CreateCommandBuffers();
+
+	Context.RecreatingSwapchain = false;
+
+	return true;
 }

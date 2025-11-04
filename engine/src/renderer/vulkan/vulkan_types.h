@@ -1,10 +1,7 @@
 #pragma once
 
-#include "defines.h"
 #include "containers/karray.h"
-#include <vulkan/vulkan.h>
-
-#define VK_CHECK(Expression) Assert((Expression) == VK_SUCCESS)
+#include "vulkan_utils.h"
 
 struct VulkanDevice
 {
@@ -110,6 +107,12 @@ struct VulkanContext
 {
 	u32 FramebufferWidth;
 	u32 FramebufferHeight;
+
+	// NOTE: these counters are used for synchronization purposes.
+	// If the first doesn't match the second, it means that a new
+	// framebuffer must be generated
+	u64 FramebufferSizeGeneration;
+	u64 FramebufferSizeLastGeneration;
 
 	VkInstance Instance;
 	VkAllocationCallbacks *Allocator;

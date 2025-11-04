@@ -179,7 +179,8 @@ void VulkanSwapchainCreate(VulkanContext *Context, u32 Width, u32 Height, MemAre
 		ViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		ViewCreateInfo.subresourceRange.layerCount = 1;
 
-		VK_CHECK(vkCreateImageView(Context->Device.LogicalDevice, &ViewCreateInfo, Context->Allocator, &OutSwapchain->Views[Idx]));
+		VK_CHECK(vkCreateImageView(Context->Device.LogicalDevice, &ViewCreateInfo, Context->Allocator,
+								   &OutSwapchain->Views[Idx]));
 	}
 
 	// Depth buffer creation
@@ -199,6 +200,8 @@ void VulkanSwapchainCreate(VulkanContext *Context, u32 Width, u32 Height, MemAre
 
 void VulkanSwapchainDestroy(VulkanContext *Context, VulkanSwapchain *Swapchain)
 {
+	vkDeviceWaitIdle(Context->Device.LogicalDevice);
+
 	VulkanImageDestroy(Context, &Swapchain->DepthAttachment);
 
 	// NOTE: The images are created togheter with the Swapchain while we
@@ -265,5 +268,5 @@ void VulkanSwapchainPresent(VulkanContext *Context, VulkanSwapchain *Swapchain,
 	}
 
 	Context->CurrentFrame = (Context->CurrentFrame + 1) %
-							Swapchain->MaxFramesInFlight;
+							Swapchain->ImageCount;
 }

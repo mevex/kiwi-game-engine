@@ -116,6 +116,7 @@ void VulkanRenderPassBegin(VulkanCommandBuffer *CommandBuffer, VulkanRenderPass 
 	ClearValues[1].depthStencil.stencil = RenderPass->Stencil;
 
 	VkRenderPassBeginInfo BeginInfo = {};
+	BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	BeginInfo.renderPass = RenderPass->Handle;
 	BeginInfo.framebuffer = FrameBuffer;
 	BeginInfo.renderArea.offset.x = RenderPass->x;

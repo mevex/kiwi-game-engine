@@ -24,4 +24,10 @@ private:
 	void DestroyCommandBuffers();
 
 	void RegenerateFramebuffers(VulkanSwapchain *Swapchain, VulkanRenderPass *RenderPass);
+
+	b8 RecreateSwapchain();
+
+	u16 CachedFramebufferWidth;
+
+	u16 CachedFramebufferHeight;
 };
