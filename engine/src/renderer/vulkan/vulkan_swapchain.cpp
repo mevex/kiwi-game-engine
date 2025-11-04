@@ -2,7 +2,6 @@
 
 #include "core/logger.h"
 #include "vulkan_device.h"
-#include "vulkan_image.h"
 
 b8 VulkanSwapchainQuerySupport(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface,
 							   MemArena *Arena, VulkanSwapchainSupport &OutSwapchainSupport)
@@ -189,11 +188,10 @@ void VulkanSwapchainCreate(VulkanContext *Context, u32 Width, u32 Height, MemAre
 		Context->Device.DepthFormat = VK_FORMAT_UNDEFINED;
 		LogFatal("Failed to find a supported depth format");
 	}
-
-	VulkanImageCreate(Context, VK_IMAGE_TYPE_2D, SwapchainExtent.width, SwapchainExtent.height,
-					  Context->Device.DepthFormat, VK_IMAGE_TILING_OPTIMAL,
-					  VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-					  true, VK_IMAGE_ASPECT_DEPTH_BIT, &OutSwapchain->DepthAttachment);
+	OutSwapchain->DepthAttachment.Create(VK_IMAGE_TYPE_2D, SwapchainExtent.width, SwapchainExtent.height,
+										 Context->Device.DepthFormat, VK_IMAGE_TILING_OPTIMAL,
+										 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+										 true, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	LogInfo("Swapchain created successfully");
 }
@@ -202,7 +200,7 @@ void VulkanSwapchainDestroy(VulkanContext *Context, VulkanSwapchain *Swapchain)
 {
 	vkDeviceWaitIdle(Context->Device.LogicalDevice);
 
-	VulkanImageDestroy(Context, &Swapchain->DepthAttachment);
+	Swapchain->DepthAttachment.Destroy();
 
 	// NOTE: The images are created togheter with the Swapchain while we
 	// create the views, so we also have to destroy them.

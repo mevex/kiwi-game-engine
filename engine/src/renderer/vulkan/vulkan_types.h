@@ -30,6 +30,16 @@ struct VulkanDevice
 
 struct VulkanImage
 {
+	void Create(VkImageType Type, u32 InWidth, u32 InHeight, VkFormat Format, VkImageTiling Tiling,
+				VkImageUsageFlags Usage, VkMemoryPropertyFlags MemoryFlags, b8 CreateView,
+				VkImageAspectFlags ViewAspectFlags);
+
+	void Destroy();
+
+	void CreateView(VkFormat Format, VkImageAspectFlags AspectFlags);
+
+	u32 FindMemoryTypeIndex(u32 TypeFilter, u32 PropertyFlags);
+
 	VkImage Handle;
 	VkImageView View;
 	VkDeviceMemory Memory;

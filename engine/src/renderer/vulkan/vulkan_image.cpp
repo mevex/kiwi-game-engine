@@ -1,34 +1,18 @@
-#include "renderer/vulkan/vulkan_image.h"
-#include "renderer/vulkan/vulkan_device.h"
-#include "core/kiwi_mem.h"
+#include "vulkan_types.h"
+#include "vulkan_backend.h"
 #include "core/logger.h"
 
-u32 FindMemoryTypeIndex(VulkanContext *Context, u32 TypeFilter, u32 PropertyFlags)
+// TODO: We define this here for now
+#define MEMORY_TYPE_INDEX_INVALID -1
+
+void VulkanImage::Create(VkImageType Type, u32 InWidth, u32 InHeight, VkFormat Format, VkImageTiling Tiling,
+						 VkImageUsageFlags Usage, VkMemoryPropertyFlags MemoryFlags, b8 bCreateView,
+						 VkImageAspectFlags ViewAspectFlags)
 {
-	VkPhysicalDeviceMemoryProperties MemProperties;
-	vkGetPhysicalDeviceMemoryProperties(Context->Device.PhysicalDevice, &MemProperties);
+	VulkanContext *Context = &VulkanRenderer::Context;
 
-	for (u32 Idx = 0; Idx < MemProperties.memoryTypeCount; ++Idx)
-	{
-		if (TypeFilter & (1 << Idx) &&
-			CheckFlags(MemProperties.memoryTypes[Idx].propertyFlags, PropertyFlags))
-		{
-			return Idx;
-		}
-	}
-
-	LogWarning("Unable to find a suitable memory type");
-	return (u32)MEMORY_TYPE_INDEX_INVALID;
-}
-
-void VulkanImageCreate(VulkanContext *Context, VkImageType Type,
-					   u32 Width, u32 Height, VkFormat Format,
-					   VkImageTiling Tiling, VkImageUsageFlags Usage,
-					   VkMemoryPropertyFlags MemoryFlags, b8 CreateView,
-					   VkImageAspectFlags ViewAspectFlags, VulkanImage *OutImage)
-{
-	OutImage->Width = Width;
-	OutImage->Height = Height;
+	Width = InWidth;
+	Height = InHeight;
 
 	VkImageCreateInfo ImageCreateInfo = {};
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -46,12 +30,12 @@ void VulkanImageCreate(VulkanContext *Context, VkImageType Type,
 	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
 	VK_CHECK(vkCreateImage(Context->Device.LogicalDevice, &ImageCreateInfo, Context->Allocator,
-						   &OutImage->Handle));
+						   &Handle));
 
 	VkMemoryRequirements MemoryRequirements;
-	vkGetImageMemoryRequirements(Context->Device.LogicalDevice, OutImage->Handle, &MemoryRequirements);
+	vkGetImageMemoryRequirements(Context->Device.LogicalDevice, Handle, &MemoryRequirements);
 
-	i32 MemTypeIdx = FindMemoryTypeIndex(Context, MemoryRequirements.memoryTypeBits, MemoryFlags);
+	i32 MemTypeIdx = FindMemoryTypeIndex(MemoryRequirements.memoryTypeBits, MemoryFlags);
 	if (MemTypeIdx == MEMORY_TYPE_INDEX_INVALID)
 	{
 		LogError("Could not get the required memory type. Image not valid.");
@@ -63,24 +47,48 @@ void VulkanImageCreate(VulkanContext *Context, VkImageType Type,
 	MemAllocInfo.allocationSize = MemoryRequirements.size;
 	MemAllocInfo.memoryTypeIndex = MemTypeIdx;
 	VK_CHECK(vkAllocateMemory(Context->Device.LogicalDevice, &MemAllocInfo,
-							  Context->Allocator, &OutImage->Memory));
+							  Context->Allocator, &Memory));
 
 	// Bind memory
 	// TODO: Support configurable memory offset for image pools
-	VK_CHECK(vkBindImageMemory(Context->Device.LogicalDevice, OutImage->Handle, OutImage->Memory, 0));
+	VK_CHECK(vkBindImageMemory(Context->Device.LogicalDevice, Handle, Memory, 0));
 
-	if (CreateView)
+	if (bCreateView)
 	{
-		VulkanImageCreateView(Context, Format, OutImage, ViewAspectFlags);
+		CreateView(Format, ViewAspectFlags);
 	}
 }
 
-void VulkanImageCreateView(VulkanContext *Context, VkFormat Format,
-						   VulkanImage *Image, VkImageAspectFlags AspectFlags)
+void VulkanImage::Destroy()
 {
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	if (View)
+	{
+		vkDestroyImageView(Context->Device.LogicalDevice, View, Context->Allocator);
+		View = 0;
+	}
+
+	if (Memory)
+	{
+		vkFreeMemory(Context->Device.LogicalDevice, Memory, Context->Allocator);
+		Memory = 0;
+	}
+
+	if (Handle)
+	{
+		vkDestroyImage(Context->Device.LogicalDevice, Handle, Context->Allocator);
+		Handle = 0;
+	}
+}
+
+void VulkanImage::CreateView(VkFormat Format, VkImageAspectFlags AspectFlags)
+{
+	VulkanContext *Context = &VulkanRenderer::Context;
+
 	VkImageViewCreateInfo ViewCreateInfo = {};
 	ViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	ViewCreateInfo.image = Image->Handle;
+	ViewCreateInfo.image = Handle;
 	ViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 	ViewCreateInfo.format = Format;
 	ViewCreateInfo.subresourceRange.aspectMask = AspectFlags;
@@ -90,27 +98,25 @@ void VulkanImageCreateView(VulkanContext *Context, VkFormat Format,
 	ViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 	ViewCreateInfo.subresourceRange.layerCount = 1;
 
-	VK_CHECK(vkCreateImageView(Context->Device.LogicalDevice, &ViewCreateInfo, Context->Allocator,
-							   &Image->View));
+	VK_CHECK(vkCreateImageView(Context->Device.LogicalDevice, &ViewCreateInfo, Context->Allocator, &View));
 }
 
-void VulkanImageDestroy(VulkanContext *Context, VulkanImage *Image)
+u32 VulkanImage::FindMemoryTypeIndex(u32 TypeFilter, u32 PropertyFlags)
 {
-	if (Image->View)
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	VkPhysicalDeviceMemoryProperties MemProperties;
+	vkGetPhysicalDeviceMemoryProperties(Context->Device.PhysicalDevice, &MemProperties);
+
+	for (u32 Idx = 0; Idx < MemProperties.memoryTypeCount; ++Idx)
 	{
-		vkDestroyImageView(Context->Device.LogicalDevice, Image->View, Context->Allocator);
-		Image->View = 0;
+		if (TypeFilter & (1 << Idx) &&
+			CheckFlags(MemProperties.memoryTypes[Idx].propertyFlags, PropertyFlags))
+		{
+			return Idx;
+		}
 	}
 
-	if (Image->Memory)
-	{
-		vkFreeMemory(Context->Device.LogicalDevice, Image->Memory, Context->Allocator);
-		Image->Memory = 0;
-	}
-
-	if (Image->Handle)
-	{
-		vkDestroyImage(Context->Device.LogicalDevice, Image->Handle, Context->Allocator);
-		Image->Handle = 0;
-	}
+	LogWarning("Unable to find a suitable memory type");
+	return (u32)MEMORY_TYPE_INDEX_INVALID;
 }
