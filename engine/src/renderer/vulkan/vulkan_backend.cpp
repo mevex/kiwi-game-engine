@@ -4,7 +4,6 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_renderpass.h"
 #include "vulkan_command_buffer.h"
-#include "vulkan_framebuffer.h"
 #include "vulkan_fence.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
@@ -207,7 +206,7 @@ void VulkanRenderer::Terminate()
 
 	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
 	{
-		VulkanFramebufferDestroy(&Context, &Context.Swapchain.Framebuffers[Idx]);
+		Context.Swapchain.Framebuffers[Idx].Destroy();
 	}
 
 	VulkanRenderPassDestroy(&Context, &Context.MainRenderPass);
@@ -469,8 +468,8 @@ void VulkanRenderer::RegenerateFramebuffers(VulkanSwapchain *Swapchain, VulkanRe
 		u32 AttachmentCount = 2;
 		VkImageView Attachments[] = {Swapchain->Views[Idx], Swapchain->DepthAttachment.View};
 
-		VulkanFramebufferCreate(&Context, RenderPass, Context.FramebufferWidth, Context.FramebufferHeight,
-								AttachmentCount, Attachments, &Swapchain->Framebuffers[Idx]);
+		Swapchain->Framebuffers[Idx].Create(RenderPass, Context.FramebufferWidth, Context.FramebufferHeight,
+											AttachmentCount, Attachments);
 	}
 }
 
@@ -516,7 +515,7 @@ b8 VulkanRenderer::RecreateSwapchain()
 
 	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
 	{
-		VulkanFramebufferDestroy(&Context, &Context.Swapchain.Framebuffers[Idx]);
+		Context.Swapchain.Framebuffers[Idx].Destroy();
 	}
 
 	Context.MainRenderPass.x = 0;

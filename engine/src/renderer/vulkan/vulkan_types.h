@@ -87,6 +87,11 @@ struct VulkanCommandBuffer
 
 struct VulkanFramebuffer
 {
+	void Create(VulkanRenderPass *RenderPass, u32 Width, u32 Height, u32 AttachmentCount,
+				VkImageView *Attachments);
+
+	void Destroy();
+
 	VkFramebuffer Handle;
 	u32 AttachmentCount;
 	VkImageView *Attachments;
