@@ -1,9 +1,12 @@
 #include "vulkan_command_buffer.h"
+#include "vulkan_types.h"
+#include "vulkan_backend.h"
 
-void VulkanCommandBufferAllocate(VulkanContext *Context, VkCommandPool Pool, b8 IsPrimary,
-								 VulkanCommandBuffer *OutCommandBuffer)
+void VulkanCommandBuffer::Allocate(VkCommandPool Pool, b8 IsPrimary)
 {
-	OutCommandBuffer->State = CBS_NotAllocated;
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	State = CBS_NotAllocated;
 
 	VkCommandBufferAllocateInfo AllocateInfo = {};
 	AllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -11,23 +14,22 @@ void VulkanCommandBufferAllocate(VulkanContext *Context, VkCommandPool Pool, b8 
 	AllocateInfo.level = IsPrimary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 	AllocateInfo.commandBufferCount = 1;
 
-	VK_CHECK(vkAllocateCommandBuffers(Context->Device.LogicalDevice, &AllocateInfo,
-									  &OutCommandBuffer->Handle));
+	VK_CHECK(vkAllocateCommandBuffers(Context->Device.LogicalDevice, &AllocateInfo, &Handle));
 
-	OutCommandBuffer->State = CBS_Ready;
+	State = CBS_Ready;
 }
 
-void VulkanCommandBufferFree(VulkanContext *Context, VkCommandPool Pool,
-							 VulkanCommandBuffer *CommandBuffer)
+void VulkanCommandBuffer::Free(VkCommandPool Pool)
 {
-	vkFreeCommandBuffers(Context->Device.LogicalDevice, Pool, 1, &CommandBuffer->Handle);
+	VulkanContext *Context = &VulkanRenderer::Context;
 
-	CommandBuffer->Handle = 0;
-	CommandBuffer->State = CBS_NotAllocated;
+	vkFreeCommandBuffers(Context->Device.LogicalDevice, Pool, 1, &Handle);
+
+	Handle = 0;
+	State = CBS_NotAllocated;
 }
 
-void VulkanCommandBufferBegin(VulkanCommandBuffer *CommandBuffer, b8 IsSingleUse, b8 IsRenderPassContinue,
-							  b8 IsSimultaneousUse)
+void VulkanCommandBuffer::Begin(b8 IsSingleUse, b8 IsRenderPassContinue, b8 IsSimultaneousUse)
 {
 	VkCommandBufferBeginInfo BeginInfo = {};
 	BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -39,51 +41,49 @@ void VulkanCommandBufferBegin(VulkanCommandBuffer *CommandBuffer, b8 IsSingleUse
 	else if (IsSimultaneousUse)
 		BeginInfo.flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-	VK_CHECK(vkBeginCommandBuffer(CommandBuffer->Handle, &BeginInfo));
+	VK_CHECK(vkBeginCommandBuffer(Handle, &BeginInfo));
 
-	CommandBuffer->State = CBS_Recording;
+	State = CBS_Recording;
 }
 
-void VulkanCommandBufferEnd(VulkanCommandBuffer *CommandBuffer)
+void VulkanCommandBuffer::End()
 {
-	VK_CHECK(vkEndCommandBuffer(CommandBuffer->Handle));
+	VK_CHECK(vkEndCommandBuffer(Handle));
 	// TODO: Check that the transition is from a valid state
-	CommandBuffer->State = CBS_RecordingEnded;
+	State = CBS_RecordingEnded;
 }
 
-void VulkanCommandBufferUpdateSubmitted(VulkanCommandBuffer *CommandBuffer)
-{
-	// TODO: Check that the transition is from a valid state
-	CommandBuffer->State = CBS_Submitted;
-}
-
-void VulkanCommandBufferReset(VulkanCommandBuffer *CommandBuffer)
+void VulkanCommandBuffer::UpdateSubmitted()
 {
 	// TODO: Check that the transition is from a valid state
-	CommandBuffer->State = CBS_Ready;
+	State = CBS_Submitted;
 }
 
-void VulkanCommandBufferAllocateAndBeginSingleUse(VulkanContext *Context, VkCommandPool Pool,
-												  VulkanCommandBuffer *OutCommandBuffer)
+void VulkanCommandBuffer::Reset()
 {
-	VulkanCommandBufferAllocate(Context, Pool, true, OutCommandBuffer);
-	VulkanCommandBufferBegin(OutCommandBuffer, true, false, false);
+	// TODO: Check that the transition is from a valid state
+	State = CBS_Ready;
 }
 
-void VulkanCommandBufferEndSingleUse(VulkanContext *Context, VkCommandPool Pool,
-									 VulkanCommandBuffer *CommandBuffer, VkQueue Queue)
+void VulkanCommandBuffer::AllocateAndBeginSingleUse(VkCommandPool Pool)
 {
-	VulkanCommandBufferEnd(CommandBuffer);
+	Allocate(Pool, true);
+	Begin(true, false, false);
+}
+
+void VulkanCommandBuffer::EndSingleUse(VkCommandPool Pool, VkQueue Queue)
+{
+	End();
 
 	// Submit the command buffer
 	VkSubmitInfo SubmitInfo = {};
 	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	SubmitInfo.commandBufferCount = 1;
-	SubmitInfo.pCommandBuffers = &CommandBuffer->Handle;
+	SubmitInfo.pCommandBuffers = &Handle;
 
 	VK_CHECK(vkQueueSubmit(Queue, 1, &SubmitInfo, 0));
 
 	VK_CHECK(vkQueueWaitIdle(Queue));
 
-	VulkanCommandBufferFree(Context, Pool, CommandBuffer);
+	Free(Pool);
 }

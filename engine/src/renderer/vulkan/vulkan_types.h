@@ -81,6 +81,23 @@ enum VulkanCommandBufferState
 
 struct VulkanCommandBuffer
 {
+	void Allocate(VkCommandPool Pool, b8 IsPrimary);
+
+	void Free(VkCommandPool Pool);
+
+	void Begin(b8 IsSingleUse, b8 IsRenderPassContinue, b8 IsSimultaneousUse);
+
+	void End();
+
+	void UpdateSubmitted();
+
+	void Reset();
+
+	// Helper functions that allow to quickly get and use a single use command buffer
+	void AllocateAndBeginSingleUse(VkCommandPool Pool);
+
+	void EndSingleUse(VkCommandPool Pool, VkQueue Queue);
+
 	VkCommandBuffer Handle;
 	VulkanCommandBufferState State;
 };

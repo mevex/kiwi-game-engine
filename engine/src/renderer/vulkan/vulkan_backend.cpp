@@ -302,8 +302,8 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 	}
 
 	VulkanCommandBuffer *CommandBuffer = &Context.GraphicsCommandBuffers[Context.ImageIndex];
-	VulkanCommandBufferReset(CommandBuffer);
-	VulkanCommandBufferBegin(CommandBuffer, false, false, false);
+	CommandBuffer->Reset();
+	CommandBuffer->Begin(false, false, false);
 
 	VkViewport Viewport = {};
 	Viewport.x = 0.0f;
@@ -340,7 +340,7 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 
 	VulkanRenderPassEnd(CommandBuffer);
 
-	VulkanCommandBufferEnd(CommandBuffer);
+	CommandBuffer->End();
 
 	// Make sure any previous frame is not using this image
 	if (Context.ImagesInFlight[Context.ImageIndex] != VK_NULL_HANDLE)
@@ -376,7 +376,7 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 		return false;
 	}
 
-	VulkanCommandBufferUpdateSubmitted(CommandBuffer);
+	CommandBuffer->UpdateSubmitted();
 
 	VulkanSwapchainPresent(&Context, &Context.Swapchain,
 						   Context.QueueCompleteSemaphores[Context.CurrentFrame],
@@ -435,13 +435,11 @@ void VulkanRenderer::CreateCommandBuffers()
 	{
 		if (Context.GraphicsCommandBuffers[Idx].Handle)
 		{
-			VulkanCommandBufferFree(&Context, Context.Device.GraphicsCommandPool,
-									&Context.GraphicsCommandBuffers[Idx]);
+			Context.GraphicsCommandBuffers[Idx].Free(Context.Device.GraphicsCommandPool);
 		}
 		MemSystem::Zero(&Context.GraphicsCommandBuffers[Idx], Context.GraphicsCommandBuffers.Stride);
 
-		VulkanCommandBufferAllocate(&Context, Context.Device.GraphicsCommandPool, true,
-									&Context.GraphicsCommandBuffers[Idx]);
+		Context.GraphicsCommandBuffers[Idx].Allocate(Context.Device.GraphicsCommandPool, true);
 	}
 
 	LogInfo("Graphics command buffer created");
@@ -453,8 +451,7 @@ void VulkanRenderer::DestroyCommandBuffers()
 	{
 		if (Context.GraphicsCommandBuffers[Idx].Handle)
 		{
-			VulkanCommandBufferFree(&Context, Context.Device.GraphicsCommandPool,
-									&Context.GraphicsCommandBuffers[Idx]);
+			Context.GraphicsCommandBuffers[Idx].Free(Context.Device.GraphicsCommandPool);
 		}
 	}
 }
@@ -508,8 +505,7 @@ b8 VulkanRenderer::RecreateSwapchain()
 
 	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
 	{
-		VulkanCommandBufferFree(&Context, Context.Device.GraphicsCommandPool,
-								&Context.GraphicsCommandBuffers[Idx]);
+		Context.GraphicsCommandBuffers[Idx].Free(Context.Device.GraphicsCommandPool);
 	}
 
 	for (u32 Idx = 0; Idx < Context.Swapchain.ImageCount; ++Idx)
