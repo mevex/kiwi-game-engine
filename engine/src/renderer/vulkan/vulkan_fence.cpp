@@ -1,43 +1,50 @@
-#include "vulkan_fence.h"
+#include "vulkan_types.h"
+#include "vulkan_backend.h"
 #include "core/logger.h"
 
-void VulkanFenceCreate(VulkanContext *Context, b8 CreateSignaled, VulkanFence *OutFence)
+void VulkanFence::Create(b8 CreateSignaled)
 {
-	OutFence->IsSignaled = CreateSignaled;
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	IsSignaled = CreateSignaled;
 
 	VkFenceCreateInfo CreateInfo = {};
 	CreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	CreateInfo.flags = OutFence->IsSignaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+	CreateInfo.flags = IsSignaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
 
 	VK_CHECK(vkCreateFence(Context->Device.LogicalDevice, &CreateInfo, Context->Allocator,
-						   &OutFence->Handle));
+						   &Handle));
 }
 
-void VulkanFenceDestroy(VulkanContext *Context, VulkanFence *Fence)
+void VulkanFence::Destroy()
 {
-	if (Fence->Handle)
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	if (Handle)
 	{
-		vkDestroyFence(Context->Device.LogicalDevice, Fence->Handle, Context->Allocator);
-		Fence->Handle = 0;
+		vkDestroyFence(Context->Device.LogicalDevice, Handle, Context->Allocator);
+		Handle = 0;
 	}
-	Fence->IsSignaled = false;
+	IsSignaled = false;
 }
 
-b8 VulkanFenceWait(VulkanContext *Context, VulkanFence *Fence, u64 TimeoutNS)
+b8 VulkanFence::Wait(u64 TimeoutNS)
 {
-	if (Fence->IsSignaled)
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	if (IsSignaled)
 	{
 		return true;
 	}
 	else
 	{
-		VkResult Result = vkWaitForFences(Context->Device.LogicalDevice, 1, &Fence->Handle,
+		VkResult Result = vkWaitForFences(Context->Device.LogicalDevice, 1, &Handle,
 										  true, TimeoutNS);
 		switch (Result)
 		{
 		case VK_SUCCESS:
 		{
-			Fence->IsSignaled = true;
+			IsSignaled = true;
 			return true;
 		}
 		case VK_TIMEOUT:
@@ -70,11 +77,13 @@ b8 VulkanFenceWait(VulkanContext *Context, VulkanFence *Fence, u64 TimeoutNS)
 	return false;
 }
 
-void VulkanFenceReset(VulkanContext *Context, VulkanFence *Fence)
+void VulkanFence::Reset()
 {
-	if (Fence->IsSignaled)
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	if (IsSignaled)
 	{
-		VK_CHECK(vkResetFences(Context->Device.LogicalDevice, 1, &Fence->Handle));
-		Fence->IsSignaled = false;
+		VK_CHECK(vkResetFences(Context->Device.LogicalDevice, 1, &Handle));
+		IsSignaled = false;
 	}
 }

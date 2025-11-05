@@ -4,7 +4,6 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_renderpass.h"
 #include "vulkan_command_buffer.h"
-#include "vulkan_fence.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -170,7 +169,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 						  &Context.QueueCompleteSemaphores[Idx]);
 
 		// NOTE: Creating the fence in a signaled state.
-		VulkanFenceCreate(&Context, true, &Context.InFlightFences[Idx]);
+		Context.InFlightFences[Idx].Create(true);
 	}
 
 	// TODO: Are we allocating on the right arena?
@@ -199,7 +198,7 @@ void VulkanRenderer::Terminate()
 		}
 
 		// NOTE: Creating the fence in a signaled state.
-		VulkanFenceDestroy(&Context, &Context.InFlightFences[Idx]);
+		Context.InFlightFences[Idx].Destroy();
 	}
 
 	DestroyCommandBuffers();
@@ -288,7 +287,7 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 		return false;
 	}
 
-	if (!VulkanFenceWait(&Context, &Context.InFlightFences[Context.CurrentFrame], UINT64_MAX))
+	if (Context.InFlightFences[Context.CurrentFrame].Wait(UINT64_MAX))
 	{
 		LogWarning("In flight fence wait failed");
 		return false;
@@ -346,13 +345,13 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 	// Make sure any previous frame is not using this image
 	if (Context.ImagesInFlight[Context.ImageIndex] != VK_NULL_HANDLE)
 	{
-		VulkanFenceWait(&Context, Context.ImagesInFlight[Context.ImageIndex], UINT64_MAX);
+		Context.ImagesInFlight[Context.ImageIndex]->Wait(UINT64_MAX);
 	}
 
 	// and mark the image fence as in use by this frame
 	Context.ImagesInFlight[Context.ImageIndex] = &Context.InFlightFences[Context.CurrentFrame];
 
-	VulkanFenceReset(&Context, &Context.InFlightFences[Context.CurrentFrame]);
+	Context.InFlightFences[Context.CurrentFrame].Reset();
 
 	VkSubmitInfo SubmitInfo = {};
 	SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -114,6 +114,14 @@ struct VulkanSwapchain
 
 struct VulkanFence
 {
+	void Create(b8 CreateSignaled);
+
+	void Destroy();
+
+	b8 Wait(u64 TimeoutNS);
+
+	void Reset();
+
 	VkFence Handle;
 	b8 IsSignaled;
 };
