@@ -287,7 +287,7 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 		return false;
 	}
 
-	if (Context.InFlightFences[Context.CurrentFrame].Wait(UINT64_MAX))
+	if (!Context.InFlightFences[Context.CurrentFrame].Wait(UINT64_MAX))
 	{
 		LogWarning("In flight fence wait failed");
 		return false;
