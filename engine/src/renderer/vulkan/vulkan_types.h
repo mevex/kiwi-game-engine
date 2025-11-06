@@ -47,28 +47,6 @@ struct VulkanImage
 	u32 Height;
 };
 
-enum VulkanRenderPassState
-{
-	RPS_NotAllocated,
-	RPS_Ready,
-	RPS_Recording,
-	RPS_InRenderPass,
-	RPS_RecordingEnded,
-	RPS_Submitted,
-};
-
-struct VulkanRenderPass
-{
-	VkRenderPass Handle;
-	i32 x, y, w, h;
-	f32 r, g, b, a;
-
-	f32 Depth;
-	u32 Stencil;
-
-	VulkanRenderPassState State;
-};
-
 enum VulkanCommandBufferState
 {
 	CBS_NotAllocated,
@@ -100,6 +78,37 @@ struct VulkanCommandBuffer
 
 	VkCommandBuffer Handle;
 	VulkanCommandBufferState State;
+};
+
+enum VulkanRenderPassState
+{
+	RPS_NotAllocated,
+	RPS_Ready,
+	RPS_Recording,
+	RPS_InRenderPass,
+	RPS_RecordingEnded,
+	RPS_Submitted,
+};
+
+struct VulkanRenderPass
+{
+	void Create(u32 InX, u32 InY, u32 InW, u32 InH, f32 InR, f32 InG, f32 InB, f32 InA,
+				f32 InDepth, u32 InStencil);
+
+	void Destroy();
+
+	void Begin(VulkanCommandBuffer *CommandBuffer, VkFramebuffer FrameBuffer);
+
+	void End(VulkanCommandBuffer *CommandBuffer);
+
+	VkRenderPass Handle;
+	i32 x, y, w, h;
+	f32 r, g, b, a;
+
+	f32 Depth;
+	u32 Stencil;
+
+	VulkanRenderPassState State;
 };
 
 struct VulkanFramebuffer

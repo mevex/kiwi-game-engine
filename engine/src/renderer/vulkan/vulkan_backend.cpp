@@ -3,7 +3,6 @@
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_renderpass.h"
-#include "vulkan_command_buffer.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -141,9 +140,8 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 	VulkanSwapchainCreate(&Context, Context.FramebufferWidth, Context.FramebufferHeight,
 						  Arena, &Context.Swapchain);
 
-	VulkanRenderPassCreate(&Context,
-						   0, 0, Context.FramebufferWidth, Context.FramebufferHeight,
-						   1.0f, 0.47f, 0.0f, 1.0f, 1.0f, 0, &Context.MainRenderPass);
+	Context.MainRenderPass.Create(0, 0, Context.FramebufferWidth, Context.FramebufferHeight,
+								  1.0f, 0.47f, 0.0f, 1.0f, 1.0f, 0);
 
 	// TODO: Are we allocating on the right arena?
 	Context.Swapchain.Framebuffers.Create(Arena, Context.Swapchain.ImageCount, Context.Swapchain.ImageCount);
@@ -208,7 +206,7 @@ void VulkanRenderer::Terminate()
 		Context.Swapchain.Framebuffers[Idx].Destroy();
 	}
 
-	VulkanRenderPassDestroy(&Context, &Context.MainRenderPass);
+	Context.MainRenderPass.Destroy();
 
 	VulkanSwapchainDestroy(&Context, &Context.Swapchain);
 
@@ -326,8 +324,7 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 	Context.MainRenderPass.w = Context.FramebufferWidth;
 	Context.MainRenderPass.h = Context.FramebufferHeight;
 
-	VulkanRenderPassBegin(CommandBuffer, &Context.MainRenderPass,
-						  Context.Swapchain.Framebuffers[Context.ImageIndex].Handle);
+	Context.MainRenderPass.Begin(CommandBuffer, Context.Swapchain.Framebuffers[Context.ImageIndex].Handle);
 
 	return true;
 }
@@ -338,7 +335,7 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 {
 	VulkanCommandBuffer *CommandBuffer = &Context.GraphicsCommandBuffers[Context.ImageIndex];
 
-	VulkanRenderPassEnd(CommandBuffer);
+	Context.MainRenderPass.End(CommandBuffer);
 
 	CommandBuffer->End();
 

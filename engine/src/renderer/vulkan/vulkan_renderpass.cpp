@@ -1,20 +1,22 @@
-#include "vulkan_renderpass.h"
+#include "vulkan_types.h"
+#include "vulkan_backend.h"
 #include "core/logger.h"
 
-void VulkanRenderPassCreate(VulkanContext *Context, u32 x, u32 y, u32 w, u32 h,
-							f32 r, f32 g, f32 b, f32 a, f32 Depth, u32 Stencil,
-							VulkanRenderPass *OutRenderPass)
+void VulkanRenderPass::Create(u32 InX, u32 InY, u32 InW, u32 InH, f32 InR, f32 InG, f32 InB, f32 InA,
+							  f32 InDepth, u32 InStencil)
 {
-	OutRenderPass->x = x;
-	OutRenderPass->y = y;
-	OutRenderPass->w = w;
-	OutRenderPass->h = h;
-	OutRenderPass->r = r;
-	OutRenderPass->g = g;
-	OutRenderPass->b = b;
-	OutRenderPass->a = a;
-	OutRenderPass->Depth = Depth;
-	OutRenderPass->Stencil = Stencil;
+	x = InX;
+	y = InY;
+	w = InW;
+	h = InH;
+	r = InR;
+	g = InG;
+	b = InB;
+	a = InA;
+	Depth = InDepth;
+	Stencil = InStencil;
+
+	VulkanContext *Context = &VulkanRenderer::Context;
 
 	VkSubpassDescription Subpass = {};
 	Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -92,37 +94,38 @@ void VulkanRenderPassCreate(VulkanContext *Context, u32 x, u32 y, u32 w, u32 h,
 	RenderPassCreateInfo.pDependencies = &Dependency;
 
 	VK_CHECK(vkCreateRenderPass(Context->Device.LogicalDevice, &RenderPassCreateInfo,
-								Context->Allocator, &OutRenderPass->Handle));
+								Context->Allocator, &Handle));
 }
 
-void VulkanRenderPassDestroy(VulkanContext *Context, VulkanRenderPass *RenderPass)
+void VulkanRenderPass::Destroy()
 {
-	if (RenderPass && RenderPass->Handle)
+	VulkanContext *Context = &VulkanRenderer::Context;
+
+	if (Handle)
 	{
-		vkDestroyRenderPass(Context->Device.LogicalDevice, RenderPass->Handle, Context->Allocator);
-		RenderPass->Handle = 0;
+		vkDestroyRenderPass(Context->Device.LogicalDevice, Handle, Context->Allocator);
+		Handle = 0;
 	}
 }
 
-void VulkanRenderPassBegin(VulkanCommandBuffer *CommandBuffer, VulkanRenderPass *RenderPass,
-						   VkFramebuffer FrameBuffer)
+void VulkanRenderPass::Begin(VulkanCommandBuffer *CommandBuffer, VkFramebuffer FrameBuffer)
 {
 	VkClearValue ClearValues[2] = {};
-	ClearValues[0].color.float32[0] = RenderPass->r;
-	ClearValues[0].color.float32[1] = RenderPass->g;
-	ClearValues[0].color.float32[2] = RenderPass->b;
-	ClearValues[0].color.float32[3] = RenderPass->a;
-	ClearValues[1].depthStencil.depth = RenderPass->Depth;
-	ClearValues[1].depthStencil.stencil = RenderPass->Stencil;
+	ClearValues[0].color.float32[0] = r;
+	ClearValues[0].color.float32[1] = g;
+	ClearValues[0].color.float32[2] = b;
+	ClearValues[0].color.float32[3] = a;
+	ClearValues[1].depthStencil.depth = Depth;
+	ClearValues[1].depthStencil.stencil = Stencil;
 
 	VkRenderPassBeginInfo BeginInfo = {};
 	BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	BeginInfo.renderPass = RenderPass->Handle;
+	BeginInfo.renderPass = Handle;
 	BeginInfo.framebuffer = FrameBuffer;
-	BeginInfo.renderArea.offset.x = RenderPass->x;
-	BeginInfo.renderArea.offset.y = RenderPass->y;
-	BeginInfo.renderArea.extent.width = RenderPass->w;
-	BeginInfo.renderArea.extent.height = RenderPass->h;
+	BeginInfo.renderArea.offset.x = x;
+	BeginInfo.renderArea.offset.y = y;
+	BeginInfo.renderArea.extent.width = w;
+	BeginInfo.renderArea.extent.height = h;
 	BeginInfo.clearValueCount = 2;
 	BeginInfo.pClearValues = ClearValues;
 
@@ -130,7 +133,7 @@ void VulkanRenderPassBegin(VulkanCommandBuffer *CommandBuffer, VulkanRenderPass 
 	CommandBuffer->State = CBS_InRenderPass;
 }
 
-void VulkanRenderPassEnd(VulkanCommandBuffer *CommandBuffer)
+void VulkanRenderPass::End(VulkanCommandBuffer *CommandBuffer)
 {
 	vkCmdEndRenderPass(CommandBuffer->Handle);
 	CommandBuffer->State = CBS_Recording;
