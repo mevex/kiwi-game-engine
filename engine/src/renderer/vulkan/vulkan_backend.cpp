@@ -2,7 +2,6 @@
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
-#include "vulkan_renderpass.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
