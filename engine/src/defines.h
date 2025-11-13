@@ -51,13 +51,13 @@ macros and templates that can be usefull in every part of the code
         INLINE MACROS
 */
 #ifdef KIWI_MSVC
-#define KIWI_FORCEINLINE __forceinline
-#define KIWI_FORBIDINLINE __declspec(noinline)
+#define KIWI_INLINE __forceinline
+#define KIWI_NOINLINE __declspec(noinline)
 #else
 // TODO: This should work both on gcc and clang, but i haven't done too much
 // research about it. Also I don't know a way of preventing inlining on those compilers
-#define KIWI_FORCEINLINE inline __attribute__((always_inline))
-#define KIWI_FORBIDINLINE
+#define KIWI_INLINE inline __attribute__((always_inline))
+#define KIWI_NOINLINE
 #endif
 
 /*
@@ -92,7 +92,7 @@ KIWI_API void LogAssertion(const char *Expression, const char *File, int Line, c
 
 #endif
 
-// TRUE and FALSE definitions that I use for macro
+// TRUE and FALSE definitions for macros
 #define TRUE 1
 #define FALSE 0
 
@@ -143,7 +143,9 @@ StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
 #define DISABLE_WARNING_PUSH __pragma(warning(push))
 #define DISABLE_WARNING_POP __pragma(warning(pop))
 #define DISABLE_WARNING(Code) __pragma(warning(disable : Code))
+#define DISABLE_WARNING_JUSTIFIED(Code, Just) __pragma(warning(disable : Code, justification : Just))
 #define SUPPRESS_WARNING(Code) __pragma(warning(suppress : Code))
+#define SUPPRESS_WARNING_JUSTIFIED(Code, Just) __pragma(warning(suppress : Code, justification : Just))
 
 #elif defined(KIWI_GCC) || define(KIWI_CLANG)
 // GCC example for future reference
@@ -177,13 +179,6 @@ StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
 #define ArrayCount(array) (sizeof(array) / sizeof((array)[0]))
 #define CheckFlags(Flags, FlagsToCheck) ((Flags) & (FlagsToCheck))
 #define FourCC(String) (u32)((String[0] << 0) | (String[1] << 8) | (String[2] << 16) | (String[3] << 24))
-
-template <typename T>
-inline T Max(T A, T B) { return A > B ? A : B; }
-template <typename T>
-inline T Min(T A, T B) { return A < B ? A : B; }
-template <typename T>
-inline T Clamp(T Value, T Low, T High) { return Max(Min(Value, High), Low); }
 
 template <typename T>
 inline void Swap(T *A, T *B)

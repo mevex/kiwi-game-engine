@@ -11,7 +11,7 @@
 				"KIWI_ENGINE_EXPORTS",
 				"_UNICODE",
 				"UNICODE",
-				"KIWI_WIN 1"
+				"KIWI_WIN"
 			],
 			"windowsSdkVersion": "10.0.18362.0",
 			"compilerPath": "G:\\Programs\\Visual Studio 2022\\VC\\Tools\\MSVC\\14.32.31326\\bin\\Hostx64\\x64\\cl.exe",
