@@ -35,6 +35,7 @@
 	},
 	"C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
 		"clang-analyzer-deadcode.DeadStores",
-		"clang-diagnostic-macro-redefined"
+		"clang-diagnostic-macro-redefined",
+		"clang-diagnostic-unknown-pragmas"
 	],
 }

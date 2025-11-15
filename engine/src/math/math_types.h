@@ -21,10 +21,24 @@ struct Vec2
 		};
 	};
 
+	Vec2() {}
+
+	Vec2(Vec2 &V)
+	{
+		x = V.x;
+		y = V.y;
+	}
+
 	Vec2(f32 InX, f32 InY)
 	{
 		x = InX;
 		y = InY;
+	}
+
+	Vec2(f32 Value)
+	{
+		x = Value;
+		y = Value;
 	}
 
 	// Utility
@@ -73,6 +87,15 @@ struct Vec3
 		};
 	};
 
+	Vec3() {}
+
+	Vec3(Vec3 &V)
+	{
+		x = V.x;
+		y = V.y;
+		z = V.z;
+	}
+
 	Vec3(f32 InX, f32 InY, f32 InZ)
 	{
 		x = InX;
@@ -85,6 +108,13 @@ struct Vec3
 		x = V.x;
 		y = V.y;
 		z = InZ;
+	}
+
+	Vec3(f32 Value)
+	{
+		x = Value;
+		y = Value;
+		z = Value;
 	}
 
 	// Utility
@@ -128,21 +158,31 @@ struct Vec4
 		};
 		struct
 		{
-			f32 _x;
+			f32 _x0;
 			Vec2 yz;
-			f32 _w;
+			f32 _w0;
 		};
 		struct
 		{
 			Vec3 xyz;
-			f32 _w;
+			f32 _w1;
 		};
 		struct
 		{
-			f32 _x;
+			f32 _x1;
 			Vec3 yzw;
 		};
 	};
+
+	Vec4() {}
+
+	Vec4(Vec4 &V)
+	{
+		x = V.x;
+		y = V.y;
+		z = V.z;
+		w = V.w;
+	}
 
 	Vec4(f32 InX, f32 InY, f32 InZ, f32 InW)
 	{
@@ -158,6 +198,14 @@ struct Vec4
 		y = V.y;
 		z = V.z;
 		w = InW;
+	}
+
+	Vec4(f32 Value)
+	{
+		x = Value;
+		y = Value;
+		z = Value;
+		w = Value;
 	}
 
 	// Utility
