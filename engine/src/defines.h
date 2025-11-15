@@ -181,7 +181,13 @@ StaticAssertMsg(sizeof(void *) == 8, "32-bit compilation not supported");
 #define FourCC(String) (u32)((String[0] << 0) | (String[1] << 8) | (String[2] << 16) | (String[3] << 24))
 
 template <typename T>
-inline void Swap(T *A, T *B)
+KIWI_INLINE T Max(T A, T B) { return A > B ? A : B; }
+template <typename T>
+KIWI_INLINE T Min(T A, T B) { return A < B ? A : B; }
+template <typename T>
+KIWI_INLINE T Clamp(T Value, T Low, T High) { return Max(Min(Value, High), Low); }
+template <typename T>
+KIWI_INLINE void Swap(T *A, T *B)
 {
         T *Temp = A;
         A = B;

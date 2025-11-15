@@ -27,13 +27,6 @@
 #define SecToMs(Value) (Value) * 1000.0f
 #define MsToSec(Value) (Value) * 0.001f
 
-template <typename T>
-KIWI_INLINE T Max(T A, T B) { return A > B ? A : B; }
-template <typename T>
-KIWI_INLINE T Min(T A, T B) { return A < B ? A : B; }
-template <typename T>
-KIWI_INLINE T Clamp(T Value, T Low, T High) { return Max(Min(Value, High), Low); }
-
 KIWI_INLINE b8 IsPowerOfTwo(u64 Value) { return (Value != 0) && ((Value & (Value - 1)) == 0); }
 
 // Misc Function
