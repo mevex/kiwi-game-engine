@@ -191,6 +191,34 @@ public:
 		return Elements + Index;
 	}
 
+	// Utility
+	b8 Contains(T Element)
+	{
+		for (u64 Idx = 0; Idx < Length; ++Idx)
+		{
+			if (Element == Elements[Idx])
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	b8 Contains(T Element, u64 &OutIdx)
+	{
+		for (u64 Idx = 0; Idx < Length; ++Idx)
+		{
+			if (Element == Elements[Idx])
+			{
+				OutIdx = Idx;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	MemArena *Arena;
 
 	// NOTE: I want these values to be public fo easy access.
