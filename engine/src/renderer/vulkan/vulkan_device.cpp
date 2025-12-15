@@ -29,7 +29,8 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 {
 	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
 
-	if (!SelectPhysicalDevice(Context))
+	PhysicalDeviceQueueCounts Counts = {};
+	if (!SelectPhysicalDevice(Context, Counts))
 	{
 		return false;
 	}
@@ -40,15 +41,15 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	KArray<u32> Indices;
 	Indices.Create(ScratchArenaHandle.Arena);
 	Indices.Push(Device.GraphicsIndex);
-	if (Device.GraphicsIndex != Device.PresentIndex)
+	if (!Indices.Contains(Device.PresentIndex))
 	{
 		Indices.Push(Device.PresentIndex);
 	}
-	if (Device.GraphicsIndex != Device.TransferIndex)
+	if (!Indices.Contains(Device.TransferIndex))
 	{
 		Indices.Push(Device.TransferIndex);
 	}
-	if (Device.GraphicsIndex != Device.ComputeIndex)
+	if (!Indices.Contains(Device.ComputeIndex))
 	{
 		Indices.Push(Device.ComputeIndex);
 	}
@@ -60,7 +61,6 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	// we need an array with 2 values, one for each queue, to pass to the
 	// VkDeviceQueueCreateInfo structure
 	f32 QueuePriorities[2] = {1.0f, 1.0f};
-
 	for (u32 Idx = 0; Idx < QueueCreateInfos.Length; ++Idx)
 	{
 		VkDeviceQueueCreateInfo &Info = QueueCreateInfos[Idx];
@@ -70,7 +70,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 		Info.queueCount = 1;
 		// TODO: we assume there are at least 2 graphics queue in this family.
 		// Actually check.
-		if (Indices[Idx] == Device.GraphicsIndex)
+		if (Indices[Idx] == Device.GraphicsIndex && Counts.GraphicsQueueCount > 1)
 		{
 			Info.queueCount = 2;
 		}
@@ -123,7 +123,7 @@ b8 VulkanDeviceCreate(VulkanContext *Context)
 	return true;
 }
 
-b8 SelectPhysicalDevice(VulkanContext *Context)
+b8 SelectPhysicalDevice(VulkanContext *Context, PhysicalDeviceQueueCounts &OutQueueCounts)
 {
 	AutoFreeArena ScratchArenaHandle = AutoFreeArena(MemTag_Scratch);
 
@@ -303,6 +303,11 @@ b8 SelectPhysicalDevice(VulkanContext *Context)
 		Context->Device.PresentIndex = QueueInfo.PresentIndex;
 		Context->Device.TransferIndex = QueueInfo.TransferIndex;
 		Context->Device.ComputeIndex = QueueInfo.ComputeIndex;
+
+		OutQueueCounts.GraphicsQueueCount = FamilyProperties[QueueInfo.GraphicsIndex].queueCount;
+		OutQueueCounts.PresentQueueCount = FamilyProperties[QueueInfo.PresentIndex].queueCount;
+		OutQueueCounts.TransferQueueCount = FamilyProperties[QueueInfo.TransferIndex].queueCount;
+		OutQueueCounts.ComputeQueueCount = FamilyProperties[QueueInfo.ComputeIndex].queueCount;
 
 		Context->Device.Properties = Properties;
 		Context->Device.Features = Features;
