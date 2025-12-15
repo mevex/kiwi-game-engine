@@ -124,8 +124,30 @@ struct VulkanFramebuffer
 	VulkanRenderPass *RenderPass;
 };
 
+struct VulkanSwapchainSupport
+{
+	VkSurfaceCapabilitiesKHR Capabilities;
+	u32 FormatCount;
+	VkSurfaceFormatKHR *Formats;
+	u32 PresentModeCount;
+	VkPresentModeKHR *PresentModes;
+};
+
 struct VulkanSwapchain
 {
+	void Create(u32 Width, u32 Height, MemArena *RendererArena);
+
+	void Destroy();
+
+	void Recreate(u32 Width, u32 Height);
+
+	b8 AcquireNextImageIndex(u64 TimeoutNs, VkSemaphore ImageAvailableSemaphore, VkFence Fence, u32 *OutImageIndex);
+
+	void Present(VkSemaphore RenderCompleteSemaphore, u32 PresentImageIndex);
+
+	static b8 QuerySupport(VkPhysicalDevice PhysicalDevice, VkSurfaceKHR Surface, MemArena *Arena,
+						   VulkanSwapchainSupport &OutSwapchainInfo);
+
 	VkSurfaceFormatKHR ImageFormat;
 	u8 MaxFramesInFlight;
 	VkSwapchainKHR Handle;

@@ -1,7 +1,6 @@
 #include "vulkan_backend.h"
 #include "vulkan_platform.h"
 #include "vulkan_device.h"
-#include "vulkan_swapchain.h"
 #include "core/logger.h"
 #include "core/kiwi_string.h"
 #include "containers/karray.h"
@@ -136,8 +135,7 @@ b8 VulkanRenderer::Initialize(const char *ApplicationName, u32 Width, u32 Height
 		return false;
 	}
 
-	VulkanSwapchainCreate(&Context, Context.FramebufferWidth, Context.FramebufferHeight,
-						  Arena, &Context.Swapchain);
+	Context.Swapchain.Create(Context.FramebufferWidth, Context.FramebufferHeight, Arena);
 
 	Context.MainRenderPass.Create(0, 0, Context.FramebufferWidth, Context.FramebufferHeight,
 								  1.0f, 0.47f, 0.0f, 1.0f, 1.0f, 0);
@@ -207,7 +205,7 @@ void VulkanRenderer::Terminate()
 
 	Context.MainRenderPass.Destroy();
 
-	VulkanSwapchainDestroy(&Context, &Context.Swapchain);
+	Context.Swapchain.Destroy();
 
 	LogDebug("Destroying Vulkan device");
 	VulkanDeviceDestroy(&Context);
@@ -290,9 +288,8 @@ b8 VulkanRenderer::BeginFrame(f32 DeltaTime)
 		return false;
 	}
 
-	if (!VulkanSwapchainAcquireNextImageIndex(&Context, &Context.Swapchain, UINT64_MAX,
-											  Context.ImageAvailableSemaphores[Context.CurrentFrame],
-											  0, &Context.ImageIndex))
+	if (!Context.Swapchain.AcquireNextImageIndex(UINT64_MAX, Context.ImageAvailableSemaphores[Context.CurrentFrame],
+												 0, &Context.ImageIndex))
 	{
 		LogWarning("Failed acquiring the next image index from the swapchain");
 		return false;
@@ -374,9 +371,7 @@ b8 VulkanRenderer::EndFrame(f32 DeltaTime)
 
 	CommandBuffer->UpdateSubmitted();
 
-	VulkanSwapchainPresent(&Context, &Context.Swapchain,
-						   Context.QueueCompleteSemaphores[Context.CurrentFrame],
-						   Context.ImageIndex);
+	Context.Swapchain.Present(Context.QueueCompleteSemaphores[Context.CurrentFrame], Context.ImageIndex);
 
 	return true;
 }
@@ -488,7 +483,7 @@ b8 VulkanRenderer::RecreateSwapchain()
 		Context.ImagesInFlight[Idx] = nullptr;
 	}
 
-	VulkanSwapchainRecreate(&Context, CachedFramebufferWidth, CachedFramebufferHeight, &Context.Swapchain);
+	Context.Swapchain.Recreate(CachedFramebufferWidth, CachedFramebufferHeight);
 
 	Context.FramebufferWidth = CachedFramebufferWidth;
 	Context.FramebufferHeight = CachedFramebufferHeight;
