@@ -123,15 +123,23 @@ b8 Application::Run()
 			if (RemainingFrameTimeMS > 1.0)
 			{
 				// TODO: Hardcoded for now
-				b8 LimitFps = false;
+				b8 LimitFps = true;
 				if (LimitFps)
 				{
 					Platform::SleepMS((u64)RemainingFrameTimeMS);
+					RemainingFrameTimeMS -= (u64)RemainingFrameTimeMS;
 				}
 			}
-			else if (RemainingFrameTimeMS > 0.0)
+			else if (RemainingFrameTimeMS < 0.0)
 			{
 				LogWarning("Frame missed. Remaining Frame Time: %f ms", RemainingFrameTimeMS);
+			}
+
+			// NOTE: Spin-lock until frame time is reached
+			while (RemainingFrameTimeMS > 0.0)
+			{
+				ActualFrameTime = Platform::GetAbsoluteTime() - LastFrameTime;
+				RemainingFrameTimeMS = (TargetFrameTime - ActualFrameTime) * 1000.0;
 			}
 
 			// NOTE: Since the update function for the input swaps
