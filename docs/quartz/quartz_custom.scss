@@ -1,0 +1,41 @@
+@use "./base.scss";
+
+/* All Themes */
+
+:root {
+	--header-font-weight: 800;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: var(--header-font-weight);
+}
+
+img {
+	display: block;
+	margin: auto;
+}
+
+/* Dark Theme */
+
+:root[saved-theme="dark"] :not(pre)>code {
+	color: #fff;
+}
+
+:root[saved-theme="dark"] a.internal {
+	background-color: #6f4c25b3;
+}
+
+/* Light Theme */
+
+:root[saved-theme="light"] :not(pre)>code {
+	color: #000;
+}
+
+:root[saved-theme="light"] .search>.search-button>p {
+	color: var(--darkgrey);
+}

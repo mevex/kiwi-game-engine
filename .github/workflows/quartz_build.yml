@@ -1,0 +1,56 @@
+name: Quartz Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+        # Downloads the repo on the VM
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: docs
+
+        # Prepares the VM environment for deployment
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+        # Builds the website from markdown files using Quartz
+      - name: Build
+        uses: konstfish/quartz-build-action@v7
+        with:
+          source: docs/content                               # The directory to build from
+          destination: docs/public                           # The directory to write output into
+          page_title: "Kiwi Docs"                       # Title of resulting Quartz Page
+          quartz_config: docs/quartz/quartz.config.ts        # Path to custom Quartz config file
+          quartz_layout: docs/quartz/quartz.layout.ts        # Path to custom Quartz config file
+          quartz_icon: docs/quartz/favicon.png               # Path to custom Quartz config file
+          quartz_custom_css: docs/quartz/quartz_custom.scss  # Path to custom Quartz Page css
+
+        # Overwrite default Quartz files
+      #- name: Overwrite files
+      #  run: sudo cp -f docs/replace/og-image.png docs/public/static/og-image.png
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

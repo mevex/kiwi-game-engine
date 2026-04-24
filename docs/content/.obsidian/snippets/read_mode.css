@@ -1,0 +1,43 @@
+/*************************/
+/* ----- READ MODE ----- */
+/*************************/
+
+/*Space between paragraphs*/
+.mod-header {
+  margin-bottom: 1em
+}
+
+p {
+  margin: 0.5em 0;
+}
+
+div.mermaid {
+  display: flex;
+  justify-content: center;
+}
+
+.MathJax {
+  font-size: 1.3em;
+}
+
+/***************************/
+/* ----- EDITOR MODE ----- */
+/***************************/
+
+/* Symbols at line breaks */
+.markdown-source-view .cm-line::after {
+  content:'↵';  
+  color: var(--text-faint);
+}
+
+/* Symbols at trailing spaces */
+.markdown-source-view .cm-trailing-space-a::before, .cm-trailing-space-b::before, .cm-trailing-space-new-line::before, .cm-tab::before {
+  content: '·';
+  color: var(--text-faint);
+}
+
+/* Symbols at indents - for some reason needs more specifics*/
+.markdown-source-view.mod-cm6 .cm-indent::before {
+  content: '🠂';
+  color: var(--text-faint);
+}

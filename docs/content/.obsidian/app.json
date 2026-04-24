@@ -1,0 +1,17 @@
+{
+  "livePreview": false,
+  "spellcheck": true,
+  "spellcheckLanguages": null,
+  "newFileLocation": "folder",
+  "newLinkFormat": "shortest",
+  "showInlineTitle": true,
+  "alwaysUpdateLinks": true,
+  "showLineNumber": false,
+  "rightToLeft": false,
+  "propertiesInDocument": "hidden",
+  "tabSize": 4,
+  "defaultViewMode": "preview",
+  "vimMode": true,
+  "newFileFolderPath": "drafts",
+  "showUnsupportedFiles": true
+}

@@ -1,0 +1,10 @@
+{
+  "accentColor": "#6befc8",
+  "nativeMenus": false,
+  "translucency": false,
+  "enabledCssSnippets": [
+    "read_mode"
+  ],
+  "theme": "obsidian",
+  "baseFontSize": 18
+}
