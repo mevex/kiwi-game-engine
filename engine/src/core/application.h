@@ -24,9 +24,9 @@ public:
 	KIWI_API static b8 Run();
 
 	// Events
-	static DEFINE_EVENT_FUNCTION(HandleEvent);
-	static DEFINE_EVENT_FUNCTION(HandleKey);
-	static DEFINE_EVENT_FUNCTION(Resize);
+	static EVENT_FUNCTION(HandleEvent);
+	static EVENT_FUNCTION(HandleKey);
+	static EVENT_FUNCTION(Resize);
 
 private:
 	static Application *Instance;

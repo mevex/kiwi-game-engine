@@ -167,7 +167,7 @@ b8 Application::Run()
 }
 
 SUPPRESS_WARNING(4100)
-DEFINE_EVENT_FUNCTION(Application::HandleEvent)
+EVENT_FUNCTION(Application::HandleEvent)
 {
 	switch (Code)
 	{
@@ -182,7 +182,7 @@ DEFINE_EVENT_FUNCTION(Application::HandleEvent)
 }
 
 SUPPRESS_WARNING(4100)
-DEFINE_EVENT_FUNCTION(Application::HandleKey)
+EVENT_FUNCTION(Application::HandleKey)
 {
 	if (Code == SEC_KeyReleased)
 	{
@@ -200,7 +200,7 @@ DEFINE_EVENT_FUNCTION(Application::HandleKey)
 }
 
 SUPPRESS_WARNING(4100)
-DEFINE_EVENT_FUNCTION(Application::Resize)
+EVENT_FUNCTION(Application::Resize)
 {
 	u16 Width = Data.u16[0];
 	u16 Height = Data.u16[1];
