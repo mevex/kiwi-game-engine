@@ -13,10 +13,12 @@ pushd ..\bin
 
 set Assembly=Testbed
 set IncludeFolders=/I../testbed/src /I../engine/src/
-set Defines=-DKIWI_SLOW -DKIWI_ENGINE_EXPORTS
+set Defines=/DKIWI_SLOW
 :: set IgnoredWarnings=/wd4201 /wd4505
+:: set AdditionalWarnings=/w44820
+set WarningsOptions=/W4 /WX %AdditionalWarnings% %ignoredWarnings%
 
-set CompilerFlags=/nologo /MTd /fp:fast /GR- /EHa- /Od /Oi /WX /W4 /FC /Zi /permissive- %IncludeFolders% %Defines% %IgnoredWarnings%
+set CompilerFlags=/nologo /MTd /fp:fast /GR- /Od /Oi /FC /Zi /permissive- %IncludeFolders% %Defines% %WarningsOptions%
 set LinkerFlags=/nologo /incremental:no /opt:ref engine.lib
 
 
