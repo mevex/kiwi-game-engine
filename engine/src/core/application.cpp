@@ -10,18 +10,18 @@ Application *Application::Instance = nullptr;
 
 b8 Application::Create(Game *GameInstance)
 {
-	if (Application::Instance)
+	if (Instance)
 	{
 		LogError("Application::Create called more than once.");
 		return false;
 	}
 	else
 	{
-		Application::Instance = (Application *)MemSystem::GetArena(MemTag_Application)->Push(sizeof(Application));
-		Application::Instance->Arena = MemSystem::GetArena(MemTag_Application);
+		Instance = (Application *)MemSystem::GetArena(MemTag_Application)->Push(sizeof(Application));
+		Instance->Arena = MemSystem::GetArena(MemTag_Application);
 	}
 
-	Application::Instance->GameInstance = GameInstance;
+	Instance->GameInstance = GameInstance;
 
 	// Initialize Subsystems
 	Logger::Initialize();
@@ -30,42 +30,40 @@ b8 Application::Create(Game *GameInstance)
 		LogFatal("Event system failed to initialize");
 		return false;
 	}
-	EventSystem::Register(SEC_ApplicationQuit, Application::Instance, HandleEvent);
-	EventSystem::Register(SEC_KeyPressed, Application::Instance, HandleKey);
-	EventSystem::Register(SEC_KeyReleased, Application::Instance, HandleKey);
-	EventSystem::Register(SEC_Resized, Application::Instance, Resize);
+	EventSystem::Register(SEC_ApplicationQuit, Instance, HandleEvent);
+	EventSystem::Register(SEC_KeyPressed, Instance, HandleKey);
+	EventSystem::Register(SEC_KeyReleased, Instance, HandleKey);
+	EventSystem::Register(SEC_Resized, Instance, Resize);
 
 	InputSystem::Initialize();
 
 	// Flag the application as running
-	Application::Instance->IsRunning = true;
-	Application::Instance->IsSuspended = false;
+	Instance->IsRunning = true;
+	Instance->IsSuspended = false;
 
 	// Startup the platform with the informations inside the game instance
-	ApplicationConfig *AppConfig = &Application::Instance->GameInstance->AppConfig;
-	if (!Platform::Startup(&Application::Instance->PlatformState, AppConfig->Name,
+	ApplicationConfig *AppConfig = &Instance->GameInstance->AppConfig;
+	if (!Platform::Startup(&Instance->PlatformState, AppConfig->Name,
 						   AppConfig->PosX, AppConfig->PosY, AppConfig->Width, AppConfig->Height))
 	{
 		return false;
 	}
 
 	// NOTE: Initialize Renderer after the Platform in order to have a valid PlatformState
-	if (!Renderer::Initialize(AppConfig->Name, AppConfig->Width, AppConfig->Height, &Application::Instance->PlatformState))
+	if (!Renderer::Initialize(AppConfig->Name, AppConfig->Width, AppConfig->Height, &Instance->PlatformState))
 	{
 		LogFatal("Failed to initialize the Renderer");
 		return false;
 	}
 
 	// Initialize the game
-	if (!Application::Instance->GameInstance->Initialize(Application::Instance->GameInstance))
+	if (!Instance->GameInstance->Initialize(Instance->GameInstance))
 	{
 		LogFatal("Game failed to initialize");
 		return false;
 	}
 
-	Application::Instance->GameInstance->OnResize(Application::Instance->GameInstance,
-												  Application::Instance->Width,
-												  Application::Instance->Height);
+	Instance->GameInstance->OnResize(Instance->GameInstance, Instance->Width, Instance->Height);
 
 	return true;
 }
@@ -81,14 +79,14 @@ b8 Application::Run()
 
 	LogInfo("%s", MemSystem::Report());
 
-	while (Application::Instance->IsRunning)
+	while (Instance->IsRunning)
 	{
-		if (!Platform::ProcessMessageQueue(&Application::Instance->PlatformState))
+		if (!Platform::ProcessMessageQueue(&Instance->PlatformState))
 		{
 			Instance->IsRunning = false;
 		}
 
-		if (!Application::Instance->IsSuspended)
+		if (!Instance->IsSuspended)
 		{
 			// Update clock and get DeltaTime
 			ApplicationClock.Update();
@@ -96,18 +94,16 @@ b8 Application::Run()
 			LastFrameTime = ApplicationClock.UpdatedTime;
 			// LogDebug("Delta Time: %fms", DeltaTime * 1000);
 
-			if (!Application::Instance->GameInstance->Update(Application::Instance->GameInstance,
-															 (f32)DeltaTime))
+			if (!Instance->GameInstance->Update(Instance->GameInstance, (f32)DeltaTime))
 			{
 				LogFatal("Game update failed, shutting down");
-				Application::Instance->IsRunning = false;
+				Instance->IsRunning = false;
 			}
 
-			if (!Application::Instance->GameInstance->Render(Application::Instance->GameInstance,
-															 (f32)DeltaTime))
+			if (!Instance->GameInstance->Render(Instance->GameInstance, (f32)DeltaTime))
 			{
 				LogFatal("Game render failed, shutting down");
-				Application::Instance->IsRunning = false;
+				Instance->IsRunning = false;
 			}
 
 			// TODO: temporary code! Refactor!
@@ -153,10 +149,10 @@ b8 Application::Run()
 	// TODO: Check all the Terminate function to make sure
 	// we actually need to terminate these subsystems or
 	// we cand simply let the OS handle it for us
-	EventSystem::Unregister(SEC_ApplicationQuit, Application::Instance, HandleEvent);
-	EventSystem::Unregister(SEC_KeyPressed, Application::Instance, HandleKey);
-	EventSystem::Unregister(SEC_KeyReleased, Application::Instance, HandleKey);
-	EventSystem::Unregister(SEC_Resized, Application::Instance, Resize);
+	EventSystem::Unregister(SEC_ApplicationQuit, Instance, HandleEvent);
+	EventSystem::Unregister(SEC_KeyPressed, Instance, HandleKey);
+	EventSystem::Unregister(SEC_KeyReleased, Instance, HandleKey);
+	EventSystem::Unregister(SEC_Resized, Instance, Resize);
 
 	InputSystem::Terminate();
 	EventSystem::Terminate();
